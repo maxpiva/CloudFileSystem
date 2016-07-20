@@ -57,11 +57,11 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
 
        
-        public async Task<FileSystemResult> Populate()
+        public async Task<FileSystemResult> PopulateAsync()
         {
             return await InternalPopulate(false);
         }
-        public async Task<FileSystemResult> Refresh()
+        public async Task<FileSystemResult> RefreshAsync()
         {
             return await InternalPopulate(true);
         }
@@ -119,7 +119,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             IsPopulated = false;
         }
 
-        public async Task<FileSystemResult<IFile>> CreateFile(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<FileSystemResult<IFile>> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
 #if DEBUG || EXPERIMENTAL
             FileSystemResult<IFile> f=await InternalCreateFile(name,"FILE",false, this,readstream,token,progress, properties);
@@ -131,7 +131,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 #endif
         }
 
-        public async Task<FileSystemResult<IDirectory>> CreateDirectory(string name, Dictionary<string, object> properties)
+        public async Task<FileSystemResult<IDirectory>> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
         {
             if (properties == null)
                 properties = new Dictionary<string, object>();

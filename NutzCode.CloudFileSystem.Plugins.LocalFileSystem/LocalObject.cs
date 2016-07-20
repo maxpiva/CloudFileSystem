@@ -23,18 +23,18 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         internal LocalFileSystem FS;
 
         public string MetadataMime { get; } = null;
-        public abstract Task<FileSystemResult> Move(IDirectory destination);
-        public abstract Task<FileSystemResult> Copy(IDirectory destination);
-        public abstract Task<FileSystemResult> Rename(string newname);
-        public abstract Task<FileSystemResult> Touch();
-        public abstract Task<FileSystemResult> Delete(bool skipTrash);
+        public abstract Task<FileSystemResult> MoveAsync(IDirectory destination);
+        public abstract Task<FileSystemResult> CopyAsync(IDirectory destination);
+        public abstract Task<FileSystemResult> RenameAsync(string newname);
+        public abstract Task<FileSystemResult> TouchAsync();
+        public abstract Task<FileSystemResult> DeleteAsync(bool skipTrash);
 
         public List<IFile> GetAssets()
         {
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult<IFile>> CreateAsset(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<FileSystemResult<IFile>> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             throw new NotSupportedException();
         }
@@ -44,17 +44,17 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult> WriteMetadata(ExpandoObject metadata)
+        public Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata)
         {
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult<List<Property>>> ReadProperties()
+        public Task<FileSystemResult<List<Property>>> ReadPropertiesAsync()
         {
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult> SaveProperty(Property property)
+        public Task<FileSystemResult> SavePropertyAsync(Property property)
         {
             throw new NotSupportedException();
         }

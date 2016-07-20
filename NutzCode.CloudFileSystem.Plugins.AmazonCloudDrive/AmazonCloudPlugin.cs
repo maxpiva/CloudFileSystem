@@ -24,7 +24,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             }
         }
         
-        public async Task<FileSystemResult<IFileSystem>> Init(string fname, IOAuthProvider provider, Dictionary<string, object> settings, string userauthorization = null)
+        public async Task<FileSystemResult<IFileSystem>> InitAsync(string fname, IOAuthProvider provider, Dictionary<string, object> settings, string userauthorization = null)
         {
             string frname;
             if (settings.ContainsKey(ClientAppFriendlyName) && (settings[ClientAppFriendlyName] is string))

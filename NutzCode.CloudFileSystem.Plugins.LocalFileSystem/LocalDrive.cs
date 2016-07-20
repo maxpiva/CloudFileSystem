@@ -43,27 +43,27 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         }
 
 
-        public override async Task<FileSystemResult> Move(IDirectory destination)
+        public override async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
             return await Task.FromResult(new FileSystemResult("Unable to move a root drive"));
         }
 
-        public override async Task<FileSystemResult> Copy(IDirectory destination)
+        public override async Task<FileSystemResult> CopyAsync(IDirectory destination)
         {
             return await Task.FromResult(new FileSystemResult("Unable to copy a root drive"));
         }
 
-        public override async Task<FileSystemResult> Rename(string newname)
+        public override async Task<FileSystemResult> RenameAsync(string newname)
         {
             return await Task.FromResult(new FileSystemResult("Unable to rename a drive"));
         }
 
-        public override async Task<FileSystemResult> Touch()
+        public override async Task<FileSystemResult> TouchAsync()
         {
             return await Task.FromResult(new FileSystemResult("Unable to touch a drive"));
         }
 
-        public override async Task<FileSystemResult> Delete(bool skipTrash)
+        public override async Task<FileSystemResult> DeleteAsync(bool skipTrash)
         {
             return await Task.FromResult(new FileSystemResult("Unable to delete a drive"));
         }

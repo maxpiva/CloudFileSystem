@@ -66,7 +66,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public string Extension  => Path.GetExtension(Name)?.Substring(1) ?? string.Empty;
 
 
-        public override async Task<FileSystemResult> Move(IDirectory destination)
+        public override async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
             DirectoryImplementation to = destination as DirectoryImplementation;
             if (to == null)
@@ -80,7 +80,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return await Task.FromResult(new FileSystemResult());
         }
 
-        public override async Task<FileSystemResult> Copy(IDirectory destination)
+        public override async Task<FileSystemResult> CopyAsync(IDirectory destination)
         {
             DirectoryImplementation to = destination as DirectoryImplementation;
             if (to == null)
@@ -96,7 +96,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return await Task.FromResult(new FileSystemResult());
         }
 
-        public override async Task<FileSystemResult> Rename(string newname)
+        public override async Task<FileSystemResult> RenameAsync(string newname)
         {
             if (string.Equals(Name, newname))
                 return new FileSystemResult("Unable to rename, names are the same");
@@ -107,13 +107,13 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return await Task.FromResult(new FileSystemResult());
         }
 
-        public override async Task<FileSystemResult> Touch()
+        public override async Task<FileSystemResult> TouchAsync()
         {
             file.LastWriteTime = DateTime.Now;
             return await Task.FromResult(new FileSystemResult());
         }
 
-        public override async Task<FileSystemResult> Delete(bool skipTrash)
+        public override async Task<FileSystemResult> DeleteAsync(bool skipTrash)
         {
             File.Delete(FullName);
             ((DirectoryImplementation)Parent).files.Remove(this);

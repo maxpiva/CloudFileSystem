@@ -33,12 +33,12 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
 
 
-        public Task<FileSystemResult<IFile>> CreateFile(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<FileSystemResult<IFile>> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<FileSystemResult<IDirectory>> CreateDirectory(string name, Dictionary<string, object> properties)
+        public async Task<FileSystemResult<IDirectory>> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
         {
 
             if (properties == null)
@@ -70,11 +70,11 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new FileSystemResult<IDirectory>(ex.Error);
         }
 
-        public async Task<FileSystemResult> Populate()
+        public async Task<FileSystemResult> PopulateAsync()
         {
             return await InternalPopulate(false);
         }
-        public async Task<FileSystemResult> Refresh()
+        public async Task<FileSystemResult> RefreshAsync()
         {
             return await InternalPopulate(true);
         }

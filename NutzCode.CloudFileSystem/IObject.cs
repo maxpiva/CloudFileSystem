@@ -21,17 +21,17 @@ namespace NutzCode.CloudFileSystem
         string Metadata { get; }
         string MetadataMime { get; }
 
-        Task<FileSystemResult> Move(IDirectory destination);
-        Task<FileSystemResult> Copy(IDirectory destination);
-        Task<FileSystemResult> Rename(string newname);
-        Task<FileSystemResult> Touch();
-        Task<FileSystemResult> Delete(bool skipTrash);
+        Task<FileSystemResult> MoveAsync(IDirectory destination);
+        Task<FileSystemResult> CopyAsync(IDirectory destination);
+        Task<FileSystemResult> RenameAsync(string newname);
+        Task<FileSystemResult> TouchAsync();
+        Task<FileSystemResult> DeleteAsync(bool skipTrash);
 
         List<IFile> GetAssets();
-        Task<FileSystemResult<IFile>> CreateAsset(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties);    
-        Task<FileSystemResult> WriteMetadata(ExpandoObject metadata);
-        Task<FileSystemResult<List<Property>>> ReadProperties();
-        Task<FileSystemResult> SaveProperty(Property property);
+        Task<FileSystemResult<IFile>> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties);    
+        Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata);
+        Task<FileSystemResult<List<Property>>> ReadPropertiesAsync();
+        Task<FileSystemResult> SavePropertyAsync(Property property);
                 
         bool TryGetMetadataValue<T>(string name, out T value);
     }

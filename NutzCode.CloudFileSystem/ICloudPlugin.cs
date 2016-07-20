@@ -14,6 +14,6 @@ namespace NutzCode.CloudFileSystem
         string Name { get; }
         Bitmap Icon { get; }
         List<AuthorizationRequirement> AuthorizationRequirements { get; }
-        Task<FileSystemResult<IFileSystem>> Init(string filesystemname, IOAuthProvider oAuthProvider, Dictionary<string, object> settings, string userauthorization = null);
+        Task<FileSystemResult<IFileSystem>> InitAsync(string filesystemname, IOAuthProvider oAuthProvider, Dictionary<string, object> settings, string userauthorization = null);
     }
 }

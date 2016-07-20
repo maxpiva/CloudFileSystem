@@ -32,7 +32,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
             return JsonConvert.SerializeObject(OAuth.Token);
         }
-        public async Task<FileSystemResult<IObject>> FromPath(string path)
+        public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
         {
             return await Refs.FromPath(this, path);
         }
@@ -54,7 +54,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             r = await am.OAuth.MayRefreshToken();
             if (!r.IsOk)
                 return new FileSystemResult<GoogleDriveFileSystem>(r.Error);
-            r = await am.Populate();
+            r = await am.PopulateAsync();
             if (!r.IsOk)
                 return new FileSystemResult<GoogleDriveFileSystem>(r.Error);
             await am.RefreshQuota();

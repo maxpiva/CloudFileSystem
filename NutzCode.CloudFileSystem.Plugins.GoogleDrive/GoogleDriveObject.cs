@@ -105,7 +105,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
         public IFileSystem FileSystem => FS;
 
-        public async Task<FileSystemResult> Move(IDirectory destination)
+        public async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
             if (Parent == null)
                 return new FileSystemResult("Unable to move root directory");
@@ -140,7 +140,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new FileSystemResult<IDirectory>(ex.Error);
         }
 
-        public async Task<FileSystemResult> Copy(IDirectory destination)
+        public async Task<FileSystemResult> CopyAsync(IDirectory destination)
         {
             if (Parent == null)
                 return new FileSystemResult("Unable to copy root directory");
@@ -171,7 +171,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new FileSystemResult<IDirectory>(ex.Error);
         }
 
-        public async Task<FileSystemResult> Rename(string newname)
+        public async Task<FileSystemResult> RenameAsync(string newname)
         {
             string url = GooglePatch.FormatRest(Id);
             File f=new File();
@@ -194,7 +194,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             base.SetData(data,dataexp,datamime);
             SetAssets();
         }
-        public async Task<FileSystemResult> Touch()
+        public async Task<FileSystemResult> TouchAsync()
         {
             string url = GoogleTouch.FormatRest(Id);
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null, HttpMethod.Post);
@@ -206,7 +206,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new FileSystemResult<IDirectory>(ex.Error);
         }
 
-        public async Task<FileSystemResult> Delete(bool skipTrash)
+        public async Task<FileSystemResult> DeleteAsync(bool skipTrash)
         {
             FileSystemResult<string> ex;
             if (skipTrash)
@@ -234,7 +234,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new FileSystemResult<IDirectory>(ex.Error);
         }
 
-        public async Task<FileSystemResult<IFile>> CreateAsset(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<FileSystemResult<IFile>> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             string ext = Path.GetExtension(name);
             if ((ext != "png") && (ext != "jpg") && (ext != "jpeg") && (ext != "gif"))
@@ -283,7 +283,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 }
             }
         }
-        public async Task<FileSystemResult> WriteMetadata(ExpandoObject metadata)
+        public async Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata)
         {
             string url = GooglePatch.FormatRest(Id);
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(metadata)), "application/json", new HttpMethod("PATCH"));
@@ -295,7 +295,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new FileSystemResult<IDirectory>(ex.Error);
         }
 
-        public async Task<FileSystemResult<List<Property>>> ReadProperties()
+        public async Task<FileSystemResult<List<Property>>> ReadPropertiesAsync()
         {
             List<Property> props=new List<Property>();
             string url = GoogleProperties.FormatRest(Id);
@@ -309,9 +309,9 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new FileSystemResult<List<Property>>(props);
         }
 
-        public async Task<FileSystemResult> SaveProperty(Property property)
+        public async Task<FileSystemResult> SavePropertyAsync(Property property)
         {
-            FileSystemResult<List<Property>> fex=await ReadProperties();
+            FileSystemResult<List<Property>> fex=await ReadPropertiesAsync();
             if (!fex.IsOk)
                 return new FileSystemResult(fex.Error);
             Property p = fex.Result.FirstOrDefault(a => a.Key == property.Key);

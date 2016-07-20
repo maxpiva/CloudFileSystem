@@ -180,7 +180,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
         public IFileSystem FileSystem => FS;
 
-        public async Task<FileSystemResult> Move(IDirectory destination)
+        public async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
             if (Parent==null)
                 return new FileSystemResult("Unable to move root directory");
@@ -215,7 +215,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<IDirectory>(ex.Error);
         }
 
-        public async Task<FileSystemResult> Copy(IDirectory destination)
+        public async Task<FileSystemResult> CopyAsync(IDirectory destination)
         {
             if (Parent == null)
                 return new FileSystemResult("Unable to Copy root directory");
@@ -243,7 +243,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<IDirectory>(ex.Error);
         }
 
-        public async Task<FileSystemResult> Rename(string newname)
+        public async Task<FileSystemResult> RenameAsync(string newname)
         {
 
             string url = AmazonPatch.FormatRest(FS.OAuth.EndPoint.ContentUrl, Id);
@@ -258,7 +258,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<IDirectory>(ex.Error);
         }
 
-        public async Task<FileSystemResult> Touch()
+        public async Task<FileSystemResult> TouchAsync()
         {
             //Touch is not supported yet by Amazon
             throw new NotSupportedException();
@@ -275,7 +275,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<IDirectory>(ex.Error);*/
         }
 
-        public async Task<FileSystemResult> Delete(bool skipTrash)
+        public async Task<FileSystemResult> DeleteAsync(bool skipTrash)
         {
             if (Parent == null)
                 return new FileSystemResult("Unable to delete root directory");
@@ -298,7 +298,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<IDirectory>(ex.Error);
         }
 
-        public async Task<FileSystemResult> WriteMetadata(ExpandoObject metadata)
+        public async Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata)
         {
             //Only Name, Description and Labels supported
             Json.MetaPatch patch=new Json.MetaPatch();
@@ -353,7 +353,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         }
 
 
-        public async Task<FileSystemResult<List<Property>>> ReadProperties()
+        public async Task<FileSystemResult<List<Property>>> ReadPropertiesAsync()
         {
             return await Task.FromResult(new FileSystemResult<List<Property>>(InternalReadProperties()));
         }
@@ -362,7 +362,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
 
 
-        public async Task<FileSystemResult> SaveProperty(Property property)
+        public async Task<FileSystemResult> SavePropertyAsync(Property property)
         {
             //Properties can only be read/write/change by the Application Friendly Name Owner
             List<Property> org=InternalReadProperties();
@@ -403,7 +403,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         }
 
 
-        public async Task<FileSystemResult<IFile>> CreateAsset(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<FileSystemResult<IFile>> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
 #if DEBUG || EXPERIMENTAL
             FileSystemResult<IFile> f = await InternalCreateFile(this.Name, "ASSET", false, this, readstream, token, progress, properties);

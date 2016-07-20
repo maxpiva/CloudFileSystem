@@ -47,7 +47,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return dta.Serialize();
         }
 
-        public async Task<FileSystemResult<IObject>> FromPath(string path)
+        public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
         {
             return await Refs.FromPath(this, path);
         }
@@ -82,7 +82,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                     am.SetData(JsonConvert.SerializeObject(v));
                     am.FsName = fname;
                     await am.RefreshQuota();
-                    await am.Populate();
+                    await am.PopulateAsync();
                     return new FileSystemResult<AmazonFileSystem>(am);
                 }
             }

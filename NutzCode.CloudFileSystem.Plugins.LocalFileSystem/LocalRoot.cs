@@ -38,12 +38,12 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return new FileInfo[0];
         }
 
-        public override Task<FileSystemResult<IFile>> CreateFile(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public override Task<FileSystemResult<IFile>> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             return Task.FromResult(new FileSystemResult<IFile>("Unable to write to root"));
         }
 
-        public override Task<FileSystemResult<IDirectory>> CreateDirectory(string name, Dictionary<string, object> properties)
+        public override Task<FileSystemResult<IDirectory>> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
         {
             return Task.FromResult(new FileSystemResult<IDirectory>("Unable to create a directory in the root"));
         }
@@ -57,27 +57,27 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return await Task.FromResult(new FileSystemResult());
         }
 
-        public override async Task<FileSystemResult> Move(IDirectory destination)
+        public override async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
             return await Task.FromResult(new FileSystemResult("Unable to move a root drive"));
         }
 
-        public override async Task<FileSystemResult> Copy(IDirectory destination)
+        public override async Task<FileSystemResult> CopyAsync(IDirectory destination)
         {
             return await Task.FromResult(new FileSystemResult("Unable to copy a root drive"));
         }
 
-        public override async Task<FileSystemResult> Rename(string newname)
+        public override async Task<FileSystemResult> RenameAsync(string newname)
         {
             return await Task.FromResult(new FileSystemResult("Unable to rename the root"));
         }
 
-        public override async Task<FileSystemResult> Touch()
+        public override async Task<FileSystemResult> TouchAsync()
         {
             return await Task.FromResult(new FileSystemResult("Unable to touch the root"));
         }
 
-        public override async Task<FileSystemResult> Delete(bool skipTrash)
+        public override async Task<FileSystemResult> DeleteAsync(bool skipTrash)
         {
             return await Task.FromResult(new FileSystemResult("Unable to delete the root"));
         }

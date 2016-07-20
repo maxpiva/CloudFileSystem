@@ -73,7 +73,7 @@ namespace NutzCode.CloudFileSystem
             {
                 repeat = false;
                 if (!dir.IsPopulated)
-                    await dir.Populate();
+                    await dir.PopulateAsync();
                 foreach (IDirectory d in dir.Directories)
                 {
                     if (d.Name.Equals(parts[start], StringComparison.InvariantCultureIgnoreCase))

@@ -20,7 +20,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             LocalFileSystem l=new LocalFileSystem();
             l.fname = name;
-            FileSystemResult r=await l.Populate();
+            FileSystemResult r=await l.PopulateAsync();
             if (r.IsOk)
                 return new FileSystemResult<IFileSystem>(r.Error);
             l.Sizes=new FileSystemSizes();
@@ -34,7 +34,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return new FileSystemResult<IFileSystem>(l);
 
         }
-        public async Task<FileSystemResult<IObject>> FromPath(string path)
+        public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
         {
 
             IObject ret = await this.ObjectFromPath(path);
@@ -47,7 +47,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public async Task<FileSystemResult<IDirectory>> GetRoot()
         {
             LocalRoot l=new LocalRoot(FS);
-            await l.Populate();
+            await l.PopulateAsync();
             return new FileSystemResult<IDirectory>(l);
         }
     }

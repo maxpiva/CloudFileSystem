@@ -38,6 +38,5 @@ namespace NutzCode.CloudFileSystem
                 container.ComposeParts(this);
             }
         }
-
     }
 }

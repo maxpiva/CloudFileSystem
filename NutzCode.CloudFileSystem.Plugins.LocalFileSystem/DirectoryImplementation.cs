@@ -27,21 +27,21 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             
         }
 
-        public async Task<FileSystemResult> Populate()
+        public async Task<FileSystemResult> PopulateAsync()
         {
             return await InternalPopulate(false);
         }
-        public async Task<FileSystemResult> Refresh()
+        public async Task<FileSystemResult> RefreshAsync()
         {
             return await InternalPopulate(true);
         }
 
-        public virtual async Task<FileSystemResult<IFile>> CreateFile(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public virtual async Task<FileSystemResult<IFile>> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             return await InternalCreateFile(this, name, readstream, token, progress, properties);
         }
 
-        public virtual async Task<FileSystemResult<IDirectory>> CreateDirectory(string name, Dictionary<string, object> properties)
+        public virtual async Task<FileSystemResult<IDirectory>> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
         {
             try
             {

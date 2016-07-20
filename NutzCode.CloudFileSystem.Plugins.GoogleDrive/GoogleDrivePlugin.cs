@@ -26,7 +26,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
 
 
-        public async Task<FileSystemResult<IFileSystem>> Init(string fname, IOAuthProvider provider, Dictionary<string, object> settings, string userauthorization = null)
+        public async Task<FileSystemResult<IFileSystem>> InitAsync(string fname, IOAuthProvider provider, Dictionary<string, object> settings, string userauthorization = null)
         {
             FileSystemResult<GoogleDriveFileSystem> r = await GoogleDriveFileSystem.Create(fname, provider, settings, Name, userauthorization);
             if (!r.IsOk)
