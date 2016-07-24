@@ -23,7 +23,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
         }
 
-        public Task<FileSystemResult> OverwriteFile(Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<FileSystemResult> OverwriteFileAsync(Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             throw new NotImplementedException();
         }

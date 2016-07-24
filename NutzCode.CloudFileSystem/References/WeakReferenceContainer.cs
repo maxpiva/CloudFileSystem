@@ -39,9 +39,9 @@ namespace NutzCode.CloudFileSystem.References
         }
         public virtual IObject ObjectFromPath(string fullpath)
         {
-            fullpath = fullpath.Replace("\\", "/");
-            if (!fullpath.StartsWith("/"))
-                fullpath = "/" + fullpath;
+            fullpath = fullpath.Replace("/", "\\");
+            if (!fullpath.StartsWith("\\"))
+                fullpath = "\\" + fullpath;
             foreach (WeakReference<IDirectory> a in _directories.ToList())
             {
                 IDirectory d;

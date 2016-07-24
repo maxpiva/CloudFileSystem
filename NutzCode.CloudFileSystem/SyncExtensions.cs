@@ -86,12 +86,12 @@ namespace NutzCode.CloudFileSystem
 
         public static FileSystemResult<Stream> OpenRead(this IFile file)
         {
-            return Task.Run(async () => await file.OpenRead()).Result;
+            return Task.Run(async () => await file.OpenReadAsync()).Result;
         }
 
         public static FileSystemResult OverwriteFile(this IFile file, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
-            return Task.Run(async () => await file.OverwriteFile(readstream,token, progress, properties)).Result;
+            return Task.Run(async () => await file.OverwriteFileAsync(readstream,token, progress, properties)).Result;
         }
 
 

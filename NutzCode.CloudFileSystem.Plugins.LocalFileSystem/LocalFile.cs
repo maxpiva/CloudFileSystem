@@ -38,14 +38,14 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         }
         public long Size => file?.Length ?? 0;
 
-        public async Task<FileSystemResult<Stream>> OpenRead()
+        public async Task<FileSystemResult<Stream>> OpenReadAsync()
         {
             if (file==null)
                 return new FileSystemResult<Stream>("Empty File");
             return await Task.FromResult(new FileSystemResult<Stream>(file?.OpenRead()));
         }
 
-        public async Task<FileSystemResult> OverwriteFile(Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<FileSystemResult> OverwriteFileAsync(Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             return await InternalCreateFile((DirectoryImplementation)Parent,Name,readstream,token, progress, properties);
         }

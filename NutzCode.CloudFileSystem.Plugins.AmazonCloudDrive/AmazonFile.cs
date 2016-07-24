@@ -52,7 +52,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             }
         }
 
-        public async Task<FileSystemResult> OverwriteFile(Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<FileSystemResult> OverwriteFileAsync(Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
 #if DEBUG || EXPERIMENTAL
             string type;

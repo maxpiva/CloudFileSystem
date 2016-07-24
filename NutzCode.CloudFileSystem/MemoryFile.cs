@@ -107,12 +107,12 @@ namespace NutzCode.CloudFileSystem
         }
 
         public long Size => _data.Length;
-        public async Task<FileSystemResult<Stream>> OpenRead()
+        public async Task<FileSystemResult<Stream>> OpenReadAsync()
         {
             return await Task.FromResult(new FileSystemResult<Stream>(new MemoryStream(_data)));
         }
 
-        public async Task<FileSystemResult> OverwriteFile(Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<FileSystemResult> OverwriteFileAsync(Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             return await Task.FromResult(new FileSystemResult());
         }

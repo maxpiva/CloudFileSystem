@@ -51,7 +51,7 @@ namespace NutzCode.CloudFileSystem
 
         }
 
-        public virtual async Task<FileSystemResult<Stream>> OpenRead()
+        public virtual async Task<FileSystemResult<Stream>> OpenReadAsync()
         {
             return await Task.FromResult(new FileSystemResult<Stream>(new SeekableWebStream(GetKey(), Size, CloudFileSystemPluginFactory.Instance.WebDataProvider, GetSeekableWebParameters)));
         }
@@ -162,9 +162,9 @@ namespace NutzCode.CloudFileSystem
                 string name = Name;
                 if (name != null)
                 {
-                    return _parentpath + "/" + name;
+                    return _parentpath + "\\" + name;
                 }
-                return _parentpath + "/[NULL]";
+                return _parentpath + "\\[NULL]";
             }
         }
         public virtual string Id
