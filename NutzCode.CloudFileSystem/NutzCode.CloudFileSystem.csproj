@@ -57,6 +57,7 @@
     <Compile Include="AuthorizationRequirement.cs" />
     <Compile Include="BaseObject.cs" />
     <Compile Include="CloudFileSystemPluginFactory.cs" />
+    <Compile Include="DirectoryCache\DirectoryCache.cs" />
     <Compile Include="FileSystemResult.cs" />
     <Compile Include="FileSystemSizes.cs" />
     <Compile Include="IAppAuthorization.cs" />

@@ -13,10 +13,11 @@ namespace NutzCode.CloudFileSystem
         private static CloudFileSystemPluginFactory _instance;
         public static CloudFileSystemPluginFactory Instance => _instance ?? (_instance = new CloudFileSystemPluginFactory());
 
+        //TODO Move to settings
         public const int MaximumNumberOfInactiveStreams = 40;
         public const int BlockSize = 64*1024;
         public const int MaxWaitBlockDistance = 2;
-
+        public const int DirectoryTreeCacheSize = 1024;
 
         [ImportMany(typeof(ICloudPlugin))]
         public IEnumerable<ICloudPlugin> List { get; set; }
