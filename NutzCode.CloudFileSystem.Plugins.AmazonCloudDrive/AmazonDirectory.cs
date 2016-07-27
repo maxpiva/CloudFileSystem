@@ -80,11 +80,6 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                 FileSystemResult<dynamic> fr = await List(url);
                 if (!fr.IsOk)
                     return new FileSystemResult(fr.Error);
-                if (_directories != null)
-                {
-                    foreach (IDirectory d in _directories)
-                        FS.Refs.RemoveWeakReferenceDirectory(d);
-                }
                 _directories = new List<AmazonDirectory>();
                 _files = new List<AmazonFile>();
                 string parentpath = string.Empty;
@@ -96,7 +91,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                     {
                         AmazonDirectory dir = new AmazonDirectory(parentpath, FS) { Parent = this };
                         dir.SetData(JsonConvert.SerializeObject(v));
-                        FS.Refs.AddWeakReferenceDirectory(dir);
+                        FS.Refs[dir.FullName] = dir;
                         _directories.Add(dir);
 
                     }
@@ -157,7 +152,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                     parentpath = FullName;
                 AmazonDirectory dir = new AmazonDirectory(parentpath, FS) { Parent = this };
                 dir.SetData(ex.Result);
-                FS.Refs.AddWeakReferenceDirectory(dir);
+                FS.Refs[dir.FullName] = dir;
                 _directories.Add(dir);
                 await FS.RefreshQuota();
                 return new FileSystemResult<IDirectory>(dir);

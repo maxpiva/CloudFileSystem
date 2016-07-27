@@ -18,7 +18,9 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         internal static List<string> AmazonScopes = new List<string> { "clouddrive:read_other", "clouddrive:write" };
         internal string AppFriendlyName { get; set; }
         internal OAuth OAuth;
-        internal WeakReferenceContainer Refs=new WeakReferenceContainer();
+        //internal WeakReferenceContainer Refs=new WeakReferenceContainer();
+
+        internal DirectoryCache.DirectoryCache Refs=new DirectoryCache.DirectoryCache(CloudFileSystemPluginFactory.DirectoryTreeCacheSize);
 
         public SupportedFlags Supports => SupportedFlags.Assets | SupportedFlags.MD5 | SupportedFlags.Properties;
 
@@ -49,7 +51,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
         public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
         {
-            return await Refs.FromPath(this, path);
+            return await Refs.ObjectFromPath(this, path);
         }
 
         public FileSystemSizes Sizes { get; private set; }
