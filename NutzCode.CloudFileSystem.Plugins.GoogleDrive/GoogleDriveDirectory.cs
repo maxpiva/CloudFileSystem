@@ -63,7 +63,8 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                     parentpath = FullName;
                 GoogleDriveDirectory dir = new GoogleDriveDirectory(parentpath, FS) { Parent = this };
                 dir.SetData(JsonConvert.SerializeObject(ex.Result));
-                FS.Refs.AddWeakReferenceDirectory(dir);
+
+                FS.Refs[dir.FullName]=dir;
                 _directories.Add(dir);
                 return new FileSystemResult<IDirectory>(dir);
             }
@@ -89,11 +90,6 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             FileSystemResult<dynamic> fr = await List(url);
             if (!fr.IsOk)
                 return new FileSystemResult(fr.Error);
-            if (_directories != null)
-            {
-                foreach (IDirectory d in _directories)
-                    FS.Refs.RemoveWeakReferenceDirectory(d);
-            }
             _directories = new List<GoogleDriveDirectory>();
             _files = new List<GoogleDriveFile>();
             string parentpath = string.Empty;
@@ -105,7 +101,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 {
                     GoogleDriveDirectory dir = new GoogleDriveDirectory(parentpath, FS) {Parent = this};
                     dir.SetData(JsonConvert.SerializeObject(v));
-                    FS.Refs.AddWeakReferenceDirectory(dir);
+                    FS.Refs[dir.FullName] = dir;
                     _directories.Add(dir);
 
                 }

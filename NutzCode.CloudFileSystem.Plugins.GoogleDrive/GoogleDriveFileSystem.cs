@@ -17,7 +17,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         internal bool AckAbuse = false;
 
         internal OAuth OAuth;
-        internal WeakReferenceContainer Refs = new WeakReferenceContainer();
+        internal DirectoryCache.DirectoryCache Refs = new DirectoryCache.DirectoryCache(CloudFileSystemPluginFactory.DirectoryTreeCacheSize);
         public FileSystemSizes Sizes { get; private set; }
 
         public SupportedFlags Supports { get; } = SupportedFlags.MD5 | SupportedFlags.Assets | SupportedFlags.Properties;
@@ -34,7 +34,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         }
         public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
         {
-            return await Refs.FromPath(this, path);
+            return await Refs.ObjectFromPath(this, path);
         }
 
         public static async Task<FileSystemResult<GoogleDriveFileSystem>> Create(string fname, IOAuthProvider provider, Dictionary<string, object> settings, string pluginanme, string userauthorization = null)
