@@ -185,7 +185,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
                     nm.Add("Authorization", "Bearer " + Token.AccessToken);
                     pars.Headers = nm;
                 }
-                using (WebStream w = await WebStream.CreateStream(pars))
+                using (WebStream w = await WebStreamFactory.Instance.CreateStreamAsync(pars))
                 {
                     if ((w.StatusCode == HttpStatusCode.OK) || (w.StatusCode == HttpStatusCode.Created) || (w.StatusCode == HttpStatusCode.Accepted))
                     {
