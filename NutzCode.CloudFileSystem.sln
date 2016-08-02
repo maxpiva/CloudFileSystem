@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NutzCode.Libraries.Web", "N
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{223C66D2-D100-4D56-9E18-D94F37662AB7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NutzCode.CloudFileSystem.OAuth.Windows.WPF", "NutzCode.CloudFileSystem.OAuth.Windows.WPF\NutzCode.CloudFileSystem.OAuth.Windows.WPF.csproj", "{83727F74-6684-4B11-9158-B0BA1A60D8BE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,18 @@ Global
 		{865C8B13-EB43-439E-9D69-CE7B54DCA4FF}.Release|x64.Build.0 = Release|Any CPU
 		{865C8B13-EB43-439E-9D69-CE7B54DCA4FF}.Release|x86.ActiveCfg = Release|Any CPU
 		{865C8B13-EB43-439E-9D69-CE7B54DCA4FF}.Release|x86.Build.0 = Release|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Debug|x64.Build.0 = Debug|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Debug|x86.Build.0 = Debug|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Release|x64.ActiveCfg = Release|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Release|x64.Build.0 = Release|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Release|x86.ActiveCfg = Release|Any CPU
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -128,6 +142,7 @@ Global
 		{F9FF042F-F6E6-4C36-A917-34BF0F5AB187} = {2563145F-CFE6-4BD0-80D0-EB174A01338F}
 		{DEC4BFB0-14CD-4622-B1E0-AC97ACA64F8F} = {2563145F-CFE6-4BD0-80D0-EB174A01338F}
 		{865C8B13-EB43-439E-9D69-CE7B54DCA4FF} = {223C66D2-D100-4D56-9E18-D94F37662AB7}
+		{83727F74-6684-4B11-9158-B0BA1A60D8BE} = {2563145F-CFE6-4BD0-80D0-EB174A01338F}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		EnterpriseLibraryConfigurationToolBinariesPathV6 = packages\EnterpriseLibrary.TransientFaultHandling.6.0.1304.0\lib\portable-net45+win+wp8;packages\EnterpriseLibrary.TransientFaultHandling.Data.6.0.1304.1\lib\NET45
