@@ -15,7 +15,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         internal const string AmazonOAuthLogin = "https://www.amazon.com/ap/oa";
         internal const string AmazonQuota = "{0}/account/quota";
 
-        internal static List<string> AmazonScopes = new List<string> { "clouddrive:read_other", "clouddrive:write" };
+        internal static List<string> AmazonScopes = new List<string> { "clouddrive:read_all", "clouddrive:write" };
         internal string AppFriendlyName { get; set; }
         internal OAuth OAuth;
         //internal WeakReferenceContainer Refs=new WeakReferenceContainer();

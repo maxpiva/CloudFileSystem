@@ -14,14 +14,14 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             public string eTagResponse { get; set; }
             public string id { get; set; }
             public string kind { get; set; }
-            public long version { get; set; }
+            public long? version { get; set; }
             public List<string> labels { get; set; }
             public ContentProperties contentProperties { get; set; }
-            public DateTime createdDate { get; set; }
+            public DateTime? createdDate { get; set; }
             public string createdBy { get; set; }
             public string description { get; set; }
-            public bool restricted { get; set; }
-            public DateTime modifiedDate { get; set; }
+            public bool? restricted { get; set; }
+            public DateTime? modifiedDate { get; set; }
             public string name { get; set; }
             public bool isShared { get; set; }
             public List<string> parents { get; set; }

@@ -82,14 +82,11 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                     return new FileSystemResult(fr.Error);
                 _directories = new List<AmazonDirectory>();
                 _files = new List<AmazonFile>();
-                string parentpath = string.Empty;
-                if (!IsRoot)
-                    parentpath = FullName;
                 foreach (dynamic v in fr.Result)
                 {
                     if (v.kind == "FOLDER")
                     {
-                        AmazonDirectory dir = new AmazonDirectory(parentpath, FS) { Parent = this };
+                        AmazonDirectory dir = new AmazonDirectory(FullName, FS) { Parent = this };
                         dir.SetData(JsonConvert.SerializeObject(v));
                         FS.Refs[dir.FullName] = dir;
                         _directories.Add(dir);
@@ -97,7 +94,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                     }
                     else if (v.kind == "FILE")
                     {
-                        AmazonFile f = new AmazonFile(parentpath, FS) { Parent = this};
+                        AmazonFile f = new AmazonFile(FullName, FS) { Parent = this};
                         f.SetData(JsonConvert.SerializeObject(v));
                         _files.Add(f);
 
@@ -144,12 +141,10 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             j.kind = "FOLDER";
             j.parents = new List<string> { Id };
             string url = AmazonCreate.FormatRest(FS.OAuth.EndPoint.ContentUrl);
-            FileSystemResult<string> ex=await FS.OAuth.CreateMetadataStream<string>(url,Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j)), "application/json");
+            FileSystemResult<string> ex=await FS.OAuth.CreateMetadataStream<string>(url,Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j,Newtonsoft.Json.Formatting.None,new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })), "application/json");
             if (ex.IsOk)
             {
                 string parentpath = string.Empty;
-                if (!IsRoot)
-                    parentpath = FullName;
                 AmazonDirectory dir = new AmazonDirectory(parentpath, FS) { Parent = this };
                 dir.SetData(ex.Result);
                 FS.Refs[dir.FullName] = dir;

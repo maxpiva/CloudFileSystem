@@ -57,7 +57,7 @@ namespace NutzCode.CloudFileSystem
 
         public static string FormatRest(this string template, params object[] objs)
         {
-            return string.Format(template, objs.Select(o => o.ToString()).Select(n => !n.StartsWith("?") ? HttpUtility.UrlEncode(n) : n).Cast<object>().ToArray());
+            return string.Format(template, objs.Select(o => o.ToString()).Select(n => (!n.StartsWith("?") && !n.StartsWith("http"))? HttpUtility.UrlEncode(n) : n).Cast<object>().ToArray());
         }
 
         public static async Task<IObject> ObjectFromPath(this IDirectory dir, string fullname)

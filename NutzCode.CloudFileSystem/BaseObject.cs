@@ -159,12 +159,13 @@ namespace NutzCode.CloudFileSystem
         {
             get
             {
-                string name = Name;
-                if (name != null)
+                string name = Name ?? "[NULL]";
+
+                if (!string.IsNullOrEmpty(_parentpath))
                 {
                     return _parentpath + "\\" + name;
                 }
-                return _parentpath + "\\[NULL]";
+                return name;
             }
         }
         public virtual string Id

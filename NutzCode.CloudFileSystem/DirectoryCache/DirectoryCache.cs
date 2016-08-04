@@ -16,7 +16,8 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
         private async Task<FileSystemResult<IObject>> GetFromPath(IDirectory d, string path)
         {
             bool populated = false;
-            this[d.FullName] = d;
+            if (path.StartsWith("\\"))
+                path = path.Substring(1);
             if (!d.IsPopulated)
             {
                 FileSystemResult n = await d.PopulateAsync();
@@ -55,7 +56,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
             }
             while (true)
             {
-                foreach (IFile dn in d.Directories)
+                foreach (IFile dn in d.Files)
                 {
                     if (dn.Name.Equals(path, StringComparison.InvariantCultureIgnoreCase))
                         return new FileSystemResult<IObject>(dn);
