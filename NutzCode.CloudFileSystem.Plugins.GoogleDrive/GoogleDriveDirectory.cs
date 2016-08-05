@@ -18,8 +18,8 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
 
 
-        private List<GoogleDriveDirectory> _directories = new List<GoogleDriveDirectory>();
-        private List<GoogleDriveFile> _files = new List<GoogleDriveFile>();
+        internal List<GoogleDriveDirectory> _directories = new List<GoogleDriveDirectory>();
+        internal List<GoogleDriveFile> _files = new List<GoogleDriveFile>();
 
         public List<IDirectory> Directories => _directories.Cast<IDirectory>().ToList();
         public List<IFile> Files => _files.Cast<IFile>().ToList();

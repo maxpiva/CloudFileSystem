@@ -193,20 +193,20 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             j.childId = Id;
             j.fromParent = ((AmazonDirectory)Parent).Id;
 
-            string url = AmazonMove.FormatRest(FS.OAuth.EndPoint.ContentUrl, dest.Id);
+            string url = AmazonMove.FormatRest(FS.OAuth.EndPoint.MetadataUrl, dest.Id);
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j)), "application/json");
             if (ex.IsOk)
             {
                 this.SetData(ex.Result);
                 if (this is AmazonFile)
                 {
-                    Parent.Files.Remove((IFile)this);
-                    dest.Files.Add((IFile)this);
+                    ((AmazonDirectory)Parent)._files.Remove((AmazonFile)this);
+                    dest._files.Add((AmazonFile)this);
                 }
                 else if (this is AmazonDirectory)
                 {
-                    Parent.Directories.Remove((IDirectory)this);
-                    dest.Directories.Add((IDirectory)this);
+                    ((AmazonDirectory)Parent)._directories.Remove((AmazonDirectory)this);
+                    dest._directories.Add((AmazonDirectory)this);
 
                 }
                 this.Parent = ((AmazonDirectory) destination);
@@ -224,7 +224,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             AmazonDirectory dest = (AmazonDirectory)destination;
             if (dest.Id == ((AmazonDirectory)Parent).Id)
                 return new FileSystemResult("Source Directory and Destination Directory should be different");
-            string url = AmazonCopy.FormatRest(FS.OAuth.EndPoint.ContentUrl, dest.Id, Id);
+            string url = AmazonCopy.FormatRest(FS.OAuth.EndPoint.MetadataUrl, dest.Id, Id);
 
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null,HttpMethod.Put);
             if (ex.IsOk)
@@ -279,7 +279,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         {
             if (Parent == null)
                 return new FileSystemResult("Unable to delete root directory");
-            string url = AmazonTrash.FormatRest(FS.OAuth.EndPoint.ContentUrl,((AmazonDirectory)Parent).Id, Id);
+            string url = AmazonTrash.FormatRest(FS.OAuth.EndPoint.MetadataUrl,((AmazonDirectory)Parent).Id, Id);
 
             FileSystemResult<ExpandoObject> ex = await FS.OAuth.CreateMetadataStream<ExpandoObject>(url, null, null, HttpMethod.Put);
             if (ex.IsOk)
@@ -310,7 +310,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             List<string> labels;
             if (InternalTryGetProperty(metadata, "labels", out labels))
                 patch.labels = labels;
-            string url = AmazonPatch.FormatRest(FS.OAuth.EndPoint.ContentUrl, Id);
+            string url = AmazonPatch.FormatRest(FS.OAuth.EndPoint.MetadataUrl, Id);
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(patch)), "application/json", new HttpMethod("PATCH"));
             if (ex.IsOk)
             {
@@ -372,12 +372,12 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             List<string> errors = new List<string>();
             if (p != null)
             {
-                string url2 = AmazonProperty.FormatRest(FS.OAuth.EndPoint.ContentUrl, Id, FS.AppFriendlyName, property.Key);
+                string url2 = AmazonProperty.FormatRest(FS.OAuth.EndPoint.MetadataUrl, Id, FS.AppFriendlyName, property.Key);
                 FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url2, null, null, HttpMethod.Delete);
                 if (!ex.IsOk)
                     errors.Add(ex.Error);
             }
-            string url = AmazonProperty.FormatRest(FS.OAuth.EndPoint.ContentUrl, Id, FS.AppFriendlyName, property.Key);
+            string url = AmazonProperty.FormatRest(FS.OAuth.EndPoint.MetadataUrl, Id, FS.AppFriendlyName, property.Key);
             Json.AddProperty addp = new Json.AddProperty();
             addp.value = property.Value;
             FileSystemResult<string> ex2 = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(addp)), "application/json", HttpMethod.Put);

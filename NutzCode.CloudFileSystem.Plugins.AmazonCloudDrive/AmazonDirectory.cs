@@ -18,9 +18,10 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         internal const string AmazonList = "{0}/nodes?filters=status:AVAILABLE AND parents:{1}&asset=ALL";
 
         internal const string AmazonCreate = "{0}/nodes";
+        internal const string AmazonCreateDirectory = "{0}/nodes?localId={1}";
 
-        private List<AmazonDirectory> _directories=new List<AmazonDirectory>();
-        private List<AmazonFile> _files = new List<AmazonFile>();
+        internal List<AmazonDirectory> _directories=new List<AmazonDirectory>();
+        internal List<AmazonFile> _files = new List<AmazonFile>();
 
         public List<IDirectory> Directories => _directories.Cast<IDirectory>().ToList();
         public List<IFile> Files => _files.Cast<IFile>().ToList();
@@ -140,12 +141,11 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             j.isShared = false;
             j.kind = "FOLDER";
             j.parents = new List<string> { Id };
-            string url = AmazonCreate.FormatRest(FS.OAuth.EndPoint.ContentUrl);
+            string url = AmazonCreateDirectory.FormatRest(FS.OAuth.EndPoint.MetadataUrl,Guid.NewGuid().ToString().Replace("-",string.Empty));
             FileSystemResult<string> ex=await FS.OAuth.CreateMetadataStream<string>(url,Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j,Newtonsoft.Json.Formatting.None,new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })), "application/json");
             if (ex.IsOk)
             {
-                string parentpath = string.Empty;
-                AmazonDirectory dir = new AmazonDirectory(parentpath, FS) { Parent = this };
+                AmazonDirectory dir = new AmazonDirectory(this.FullName, FS) { Parent = this };
                 dir.SetData(ex.Result);
                 FS.Refs[dir.FullName] = dir;
                 _directories.Add(dir);

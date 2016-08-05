@@ -124,14 +124,13 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             {
                 if (this is GoogleDriveFile)
                 {
-                    Parent.Files.Remove((IFile)this);
-                    dest.Files.Add((IFile)this);
+                    ((GoogleDriveDirectory)Parent)._files.Remove((GoogleDriveFile)this);
+                    dest._files.Add((GoogleDriveFile)this);
                 }
                 else if (this is GoogleDriveDirectory)
                 {
-                    Parent.Directories.Remove((IDirectory)this);
-                    dest.Directories.Add((IDirectory)this);
-
+                    ((GoogleDriveDirectory)Parent)._directories.Remove((GoogleDriveDirectory)this);
+                    dest._directories.Add((GoogleDriveDirectory)this);
                 }
                 SetData(ex.Result);
                 Parent = ((GoogleDriveDirectory)destination);
