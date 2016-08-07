@@ -3,13 +3,13 @@ using System.Dynamic;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NutzCode.CloudFileSystem.OAuth2;
-using NutzCode.CloudFileSystem.References;
+
 
 namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 {
     public class GoogleDriveFileSystem : GoogleDriveRoot, IFileSystem
     {
-        internal const string GoogleOAuth = "https://www.googleapis.com//oauth2/v3/token";
+        internal const string GoogleOAuth = "https://www.googleapis.com/oauth2/v3/token";
         internal const string GoogleOAuthLogin = "https://accounts.google.com/o/oauth2/auth";
         internal static List<string> GoogleScopes = new List<string> { "https://www.googleapis.com/auth/drive" };
         internal const string GoogleQuota = "https://www.googleapis.com/drive/v2/about";
@@ -57,7 +57,6 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             r = await am.PopulateAsync();
             if (!r.IsOk)
                 return new FileSystemResult<GoogleDriveFileSystem>(r.Error);
-            await am.RefreshQuota();
             return new FileSystemResult<GoogleDriveFileSystem>(am);
         }
 
@@ -75,11 +74,11 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return 0;
         }
 
-        public async Task<FileSystemResult> RefreshQuota()
+        public async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
         {
             FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStream<ExpandoObject>(GoogleQuota);
             if (!cl.IsOk)
-                return new FileSystemResult(cl.Error);
+                return new FileSystemResult<FileSystemSizes>(cl.Error);
             IDictionary<string, object> dic = cl.Result;
             Sizes = new FileSystemSizes();
             if (dic.ContainsKey("quotaBytesTotal"))
@@ -88,7 +87,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 Sizes.UsedSize = ParseLong(dic["quotaBytesUsed"]);
             if (dic.ContainsKey("quotaBytesUsedAggregate"))
                 Sizes.AvailableSize= Sizes.TotalSize-ParseLong(dic["quotaBytesUsedAggregate"]);
-            return new FileSystemResult();
+            return new FileSystemResult<FileSystemSizes>(Sizes);
         }
 
     }

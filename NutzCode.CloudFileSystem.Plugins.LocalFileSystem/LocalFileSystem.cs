@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
@@ -10,6 +11,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         }
         public SupportedFlags Supports => SupportedFlags.Nothing;
+        internal DirectoryCache.DirectoryCache Refs = new DirectoryCache.DirectoryCache(CloudFileSystemPluginFactory.DirectoryTreeCacheSize);
 
 
         public LocalFileSystem() : base(null)
@@ -21,24 +23,33 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             LocalFileSystem l=new LocalFileSystem();
             l.fname = name;
             FileSystemResult r=await l.PopulateAsync();
-            if (r.IsOk)
-                return new FileSystemResult<IFileSystem>(r.Error);
-            l.Sizes=new FileSystemSizes();
-            // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-            foreach (LocalDrive ld in l.directories)
-            {
-                l.Sizes.AvailableSize += ld.Drive.AvailableFreeSpace;
-                l.Sizes.UsedSize += ld.Drive.TotalSize - ld.Drive.AvailableFreeSpace;
-                l.Sizes.TotalSize += ld.Drive.TotalSize;
-            }
+            if (!r.IsOk)
+                return new FileSystemResult<IFileSystem>(r.Error);            
             return new FileSystemResult<IFileSystem>(l);
-
         }
+
+        public async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        {
+            Sizes = new FileSystemSizes();
+            // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
+            foreach (LocalDrive ld in directories)
+            {
+                try
+                {
+                    Sizes.AvailableSize += ld.Drive.AvailableFreeSpace;
+                    Sizes.UsedSize += ld.Drive.TotalSize - ld.Drive.AvailableFreeSpace;
+                    Sizes.TotalSize += ld.Drive.TotalSize;
+                }
+                catch (Exception) //Cdrom and others
+                {
+                }
+            }
+            return await Task.FromResult(new FileSystemResult<FileSystemSizes>(Sizes));
+        }
+
         public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
         {
-
-            IObject ret = await this.ObjectFromPath(path);
-            return new FileSystemResult<IObject>(ret);
+            return await Refs.ObjectFromPath(this, path);
         }
 
         public FileSystemSizes Sizes { get; private set; }

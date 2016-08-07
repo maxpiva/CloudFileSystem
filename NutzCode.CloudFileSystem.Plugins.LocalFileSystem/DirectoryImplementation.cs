@@ -54,6 +54,9 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 if (properties.Any(a => a.Key.Equals("CreatedDate", StringComparison.InvariantCultureIgnoreCase)))
                     dinfo.CreationTime = (DateTime)properties.First(a => a.Key.Equals("CreatedDate", StringComparison.InvariantCultureIgnoreCase)).Value;
                 LocalDirectory f = new LocalDirectory(dinfo,FS);
+                f.Parent = this;
+                FS.Refs[f.FullName] = f;
+                directories.Add(f);
                 return await Task.FromResult(new FileSystemResult<IDirectory>(f));
 
             }
@@ -71,6 +74,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             if (IsPopulated && !force)
                 return new FileSystemResult();
             directories = GetDirectories().Select(a => new LocalDirectory(a,FS) {Parent = this}).Cast<DirectoryImplementation>().ToList();
+            directories.ForEach(a=>FS.Refs[a.FullName]=a);
             files = GetFiles().Select(a => new LocalFile(a,FS)).ToList();
             IsPopulated = true;
             return await Task.FromResult(new FileSystemResult());

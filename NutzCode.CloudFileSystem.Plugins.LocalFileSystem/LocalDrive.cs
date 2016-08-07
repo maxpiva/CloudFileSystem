@@ -9,14 +9,14 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
     {
         internal DriveInfo Drive;
         
-        public override string Name => Drive?.Name ?? string.Empty;
+        public override string Name => Drive?.Name.Replace("\\",string.Empty) ?? string.Empty;
         public override DateTime? ModifiedDate => DateTime.Now;
         public override DateTime? CreatedDate => DateTime.Now;
         public override DateTime? LastViewed => DateTime.Now;
 
         public override ObjectAttributes Attributes => ObjectAttributes.Directory;
 
-        public override string FullName => Drive?.Name ?? string.Empty;
+        public override string FullName => Name;
         
         internal LocalDrive(DriveInfo d, LocalFileSystem fs) : base(fs)
         {
@@ -32,14 +32,14 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             if (Drive == null)
                 return new DirectoryInfo[0];
-            return Directory.GetDirectories(Name).Select(a=>new DirectoryInfo(a)).ToArray();
+            return Directory.GetDirectories(Name+"\\").Select(a=>new DirectoryInfo(a)).ToArray();
         }
 
         public override FileInfo[] GetFiles()
         {
             if (Drive == null)
                 return new FileInfo[0];
-            return Directory.GetFiles(Name).Select(a => new FileInfo(a)).ToArray();
+            return Directory.GetFiles(Name+"\\").Select(a => new FileInfo(a)).ToArray();
         }
 
 

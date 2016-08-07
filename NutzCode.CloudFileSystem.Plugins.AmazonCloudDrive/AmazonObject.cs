@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-
+using NutzCode.Libraries.Web;
 
 
 namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
@@ -120,7 +120,6 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                         parentpath = FullName;
                     AmazonFile file = new AmazonFile(parentpath, FS) {Parent = dir };
                     file.SetData(dd);
-                    await FS.RefreshQuota();
                     progress.Report(new FileProgress
                     {
                         Percentage = 100,
@@ -195,8 +194,10 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
             string url = AmazonMove.FormatRest(FS.OAuth.EndPoint.MetadataUrl, dest.Id);
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j)), "application/json");
+            //TODO Some kind of locking
             if (ex.IsOk)
             {
+                string oldFullname = this.FullName;
                 this.SetData(ex.Result);
                 if (this is AmazonFile)
                 {
@@ -205,8 +206,10 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                 }
                 else if (this is AmazonDirectory)
                 {
+                    FS.Refs.Remove(oldFullname);
                     ((AmazonDirectory)Parent)._directories.Remove((AmazonDirectory)this);
                     dest._directories.Add((AmazonDirectory)this);
+                    FS.Refs[FullName] = (AmazonDirectory)this;
 
                 }
                 this.Parent = ((AmazonDirectory) destination);
@@ -229,14 +232,20 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null,HttpMethod.Put);
             if (ex.IsOk)
             {
-                SetData(ex.Result);
                 if (this is AmazonFile)
                 {
-                    dest.Files.Add((IFile)this);
+                    AmazonFile f=new AmazonFile(destination.FullName,this.FS);
+                    f.SetData(this.Metadata,this.MetadataExpanded,this.MetadataMime);
+                    f.Parent = destination;
+                    dest._files.Add(f);
                 }
                 else if (this is AmazonDirectory)
                 {
-                    dest.Directories.Add((IDirectory)this);                
+                    AmazonDirectory d=new AmazonDirectory(destination.FullName,this.FS);
+                    d.SetData(this.Metadata, this.MetadataExpanded, this.MetadataMime);
+                    d.Parent = destination;
+                    dest._directories.Add(d);
+                    FS.Refs[d.FullName] = d;
                 }
                 return new FileSystemResult();
             }

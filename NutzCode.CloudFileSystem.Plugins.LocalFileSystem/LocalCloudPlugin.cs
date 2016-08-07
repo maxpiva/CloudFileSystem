@@ -17,7 +17,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public async Task<FileSystemResult<IFileSystem>> InitAsync(string fname, IOAuthProvider provider, Dictionary<string, object> authorization, string userauthorization = null)
         {
-            return await LocalFileSystem.Create(fname);
+            return await LocalFileSystem.Create(string.Empty);
         }
     }
 }

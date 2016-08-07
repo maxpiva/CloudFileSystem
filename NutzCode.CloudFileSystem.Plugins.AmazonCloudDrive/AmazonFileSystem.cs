@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NutzCode.CloudFileSystem.OAuth2;
-using NutzCode.CloudFileSystem.References;
+
 
 
 namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
@@ -83,7 +83,6 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                 {
                     am.SetData(JsonConvert.SerializeObject(v));
                     am.FsName = fname;
-                    await am.RefreshQuota();
                     await am.PopulateAsync();
                     return new FileSystemResult<AmazonFileSystem>(am);
                 }
@@ -91,17 +90,19 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<AmazonFileSystem>("Amazon Root directory not found");
         }
 
-        public async Task<FileSystemResult> RefreshQuota()
+        public async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
         {
             string url = AmazonQuota.FormatRest(OAuth.EndPoint.MetadataUrl);
             FileSystemResult<Json.Quota> cl = await FS.OAuth.CreateMetadataStream<Json.Quota>(url);
             if (!cl.IsOk)
-                return new FileSystemResult(cl.Error);
-            Sizes=new FileSystemSizes();
-            Sizes.AvailableSize = cl.Result.available;
-            Sizes.TotalSize = cl.Result.quota;
-            Sizes.UsedSize = cl.Result.quota - cl.Result.available;
-            return new FileSystemResult();
+                return new FileSystemResult<FileSystemSizes>(cl.Error);
+            Sizes = new FileSystemSizes
+            {
+                AvailableSize = cl.Result.available,
+                TotalSize = cl.Result.quota,
+                UsedSize = cl.Result.quota - cl.Result.available
+            };
+            return new FileSystemResult<FileSystemSizes>(Sizes);
         }
 
 

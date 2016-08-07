@@ -149,7 +149,6 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                 dir.SetData(ex.Result);
                 FS.Refs[dir.FullName] = dir;
                 _directories.Add(dir);
-                await FS.RefreshQuota();
                 return new FileSystemResult<IDirectory>(dir);
             }
             return new FileSystemResult<IDirectory>(ex.Error);

@@ -122,6 +122,8 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null,new HttpMethod("PATCH"));
             if (ex.IsOk)
             {
+                string oldFullname = this.FullName;
+                this.SetData(ex.Result);
                 if (this is GoogleDriveFile)
                 {
                     ((GoogleDriveDirectory)Parent)._files.Remove((GoogleDriveFile)this);
@@ -129,10 +131,12 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 }
                 else if (this is GoogleDriveDirectory)
                 {
+                    FS.Refs.Remove(oldFullname);
                     ((GoogleDriveDirectory)Parent)._directories.Remove((GoogleDriveDirectory)this);
                     dest._directories.Add((GoogleDriveDirectory)this);
+                    FS.Refs[FullName] = (GoogleDriveDirectory)this;
+
                 }
-                SetData(ex.Result);
                 Parent = ((GoogleDriveDirectory)destination);
                 return new FileSystemResult();
             }
@@ -157,14 +161,19 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             {
                 if (this is GoogleDriveFile)
                 {
-                    dest.Files.Add((IFile)this);
+                    GoogleDriveFile f = new GoogleDriveFile(destination.FullName, this.FS);
+                    f.SetData(this.Metadata, this.MetadataExpanded, this.MetadataMime);
+                    f.Parent = destination;
+                    dest._files.Add(f);
                 }
                 else if (this is GoogleDriveDirectory)
                 {
-                    dest.Directories.Add((IDirectory)this);
-
+                    GoogleDriveDirectory d = new GoogleDriveDirectory(destination.FullName, this.FS);
+                    d.SetData(this.Metadata, this.MetadataExpanded, this.MetadataMime);
+                    d.Parent = destination;
+                    dest._directories.Add(d);
+                    FS.Refs[d.FullName] = d;
                 }
-                SetData(ex.Result);
                 return new FileSystemResult();
             }
             return new FileSystemResult<IDirectory>(ex.Error);

@@ -61,13 +61,16 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             if (to is LocalRoot)
                 return new FileSystemResult("Root cannot be destination");
             string destname = Path.Combine(to.FullName, Name);
+            string oldFullname = this.FullName;
             Directory.Move(FullName, destname);
+            FS.Refs.Remove(oldFullname);
             ((DirectoryImplementation)Parent).directories.Remove(this);
             to.directories.Add(this);
             Parent = destination;
+            FS.Refs[FullName] = this;
             return await Task.FromResult(new FileSystemResult());
-        }
 
+        }
         public override async Task<FileSystemResult> CopyAsync(IDirectory destination)
         {
             return await Task.FromResult(new FileSystemResult("Directory copy is not supported"));

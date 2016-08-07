@@ -92,6 +92,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             File.Copy(FullName, destname);
             FileInfo finfo = new FileInfo(destname);
             LocalFile local = new LocalFile(finfo,FS);
+            local.Parent = destination;
             to.files.Add(local);
             return await Task.FromResult(new FileSystemResult());
         }
