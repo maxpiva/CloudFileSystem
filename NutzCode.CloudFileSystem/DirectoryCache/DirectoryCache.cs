@@ -61,6 +61,11 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                     if (dn.Name.Equals(path, StringComparison.InvariantCultureIgnoreCase))
                         return new FileSystemResult<IObject>(dn);
                 }
+                foreach (IDirectory dn in d.Directories)
+                {
+                    if (dn.Name.Equals(path, StringComparison.InvariantCultureIgnoreCase))
+                        return new FileSystemResult<IObject>(dn);
+                }
                 if (populated)
                     break;
                 FileSystemResult n = await d.PopulateAsync();

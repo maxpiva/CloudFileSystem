@@ -75,7 +75,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 return new FileSystemResult();
             directories = GetDirectories().Select(a => new LocalDirectory(a,FS) {Parent = this}).Cast<DirectoryImplementation>().ToList();
             directories.ForEach(a=>FS.Refs[a.FullName]=a);
-            files = GetFiles().Select(a => new LocalFile(a,FS)).ToList();
+            files = GetFiles().Select(a => new LocalFile(a,FS) { Parent=this }).ToList();
             IsPopulated = true;
             return await Task.FromResult(new FileSystemResult());
         }
