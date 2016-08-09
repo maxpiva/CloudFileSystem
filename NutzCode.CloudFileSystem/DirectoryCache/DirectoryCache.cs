@@ -45,7 +45,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                         break;
                     if (populated)
                         break;
-                    FileSystemResult n = await d.PopulateAsync();
+                    FileSystemResult n = await d.RefreshAsync();
                     if (!n.IsOk)
                         return new FileSystemResult<IObject>(n.Error);
                     populated = true;
@@ -68,7 +68,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                 }
                 if (populated)
                     break;
-                FileSystemResult n = await d.PopulateAsync();
+                FileSystemResult n = await d.RefreshAsync();
                 if (!n.IsOk)
                     return new FileSystemResult<IObject>(n.Error);
                 populated = true;
