@@ -73,16 +73,6 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
         public async Task<FileSystemResult> PopulateAsync()
         {
-            return await InternalPopulate(false);
-        }
-        public async Task<FileSystemResult> RefreshAsync()
-        {
-            return await InternalPopulate(true);
-        }
-        private async Task<FileSystemResult> InternalPopulate(bool force)
-        {
-            if (IsPopulated && !force)
-                return new FileSystemResult();
             FileSystemResult r = await FS.OAuth.MayRefreshToken();
             if (!r.IsOk)
                 return r;

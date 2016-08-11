@@ -58,22 +58,11 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
 
        
-        public async Task<FileSystemResult> PopulateAsync()
-        {
-            return await InternalPopulate(false);
-        }
-        public async Task<FileSystemResult> RefreshAsync()
-        {
-            return await InternalPopulate(true);
-        }
-
         private readonly AsyncLock _populateLock=new AsyncLock();
-        private async Task<FileSystemResult> InternalPopulate(bool force)
+        public async Task<FileSystemResult> PopulateAsync()
         {
             using (await _populateLock.LockAsync())
             {
-                if (IsPopulated && !force)
-                    return new FileSystemResult();
                 FileSystemResult r = await FS.CheckExpirations();
                 if (!r.IsOk)
                     return r;

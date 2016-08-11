@@ -48,10 +48,8 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return Task.FromResult(new FileSystemResult<IDirectory>("Unable to create a directory in the root"));
         }
 
-        public override async Task<FileSystemResult> InternalPopulate(bool force)
+        public override async Task<FileSystemResult> PopulateAsync()
         {
-            if (IsPopulated && !force)
-                return new FileSystemResult();
             directories = DriveInfo.GetDrives().Select(a => new LocalDrive(a,FS) {Parent=this }).Cast<DirectoryImplementation>().ToList();
             IsPopulated = true;
             return await Task.FromResult(new FileSystemResult());

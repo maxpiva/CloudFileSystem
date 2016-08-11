@@ -83,10 +83,7 @@ namespace NutzCode.CloudFileSystem
             return Task.Run(async () => await directory.PopulateAsync()).Result;
         }
 
-        public static FileSystemResult Refresh(this IDirectory directory)
-        {
-            return Task.Run(async () => await directory.RefreshAsync()).Result;
-        }
+
 
         public static FileSystemResult<Stream> OpenRead(this IFile file)
         {

@@ -27,15 +27,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             
         }
 
-        public async Task<FileSystemResult> PopulateAsync()
-        {
-            return await InternalPopulate(false);
-        }
-        public async Task<FileSystemResult> RefreshAsync()
-        {
-            return await InternalPopulate(true);
-        }
-
         public virtual async Task<FileSystemResult<IFile>> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             return await InternalCreateFile(this, name, readstream, token, progress, properties);
@@ -69,10 +60,8 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public virtual bool IsPopulated { get; internal set; }
         public bool IsRoot { get; internal set; } = false;
 
-        public virtual async Task<FileSystemResult> InternalPopulate(bool force)
+        public virtual async Task<FileSystemResult> PopulateAsync()
         {
-            if (IsPopulated && !force)
-                return new FileSystemResult();
             directories = GetDirectories().Select(a => new LocalDirectory(a,FS) {Parent = this}).Cast<DirectoryImplementation>().ToList();
             directories.ForEach(a=>FS.Refs[a.FullName]=a);
             files = GetFiles().Select(a => new LocalFile(a,FS) { Parent=this }).ToList();
