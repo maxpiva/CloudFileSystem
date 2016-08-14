@@ -9,10 +9,12 @@ Usage and examples comming when this become stable...
 
 Current State:
 
-Amazon Cloud Drive: Beta
+Local File System: **Beta**
 
-Google Drive: Alpha
+Amazon Cloud Drive: **Beta**
 
-OneDrive: Not even started.
+Google Drive: **Alpha**
+
+OneDrive: **Not even started.**
 
 
