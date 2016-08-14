@@ -8,8 +8,11 @@ Developers wanted for unit testing, and insert your cloudprovider plugin here  -
 Usage and examples comming when this become stable...
 
 Current State:
+
 Amazon Cloud Drive: Beta
+
 Google Drive: Alpha
+
 OneDrive: Not even started.
 
 
