@@ -11,9 +11,9 @@ Current State:
 
 Local File System: **Beta**
 
-Amazon Cloud Drive: **Beta**
+Amazon Cloud Drive: **Beta**  *Write Disabled*
 
-Google Drive: **Alpha**
+Google Drive: **Alpha**  *Write Disabled*
 
 OneDrive: **Skeleton: Not even started**
 
