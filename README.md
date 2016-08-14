@@ -5,7 +5,7 @@ Work In Progress (Use at your own risk)
 
 Developers wanted for unit testing, and insert your cloudprovider plugin here  ->...<-
 
-Usage and examples comming when this become stable...
+Usage and examples coming when this become stable...
 
 Current State:
 
