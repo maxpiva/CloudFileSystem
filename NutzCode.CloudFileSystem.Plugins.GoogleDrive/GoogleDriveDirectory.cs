@@ -58,12 +58,8 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             FileSystemResult<ExpandoObject> ex = await FS.OAuth.CreateMetadataStream<ExpandoObject>(GoogleCreateDir, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(f)), "application/json");
             if (ex.IsOk)
             {
-                string parentpath = string.Empty;
-                if (!IsRoot)
-                    parentpath = FullName;
-                GoogleDriveDirectory dir = new GoogleDriveDirectory(parentpath, FS) { Parent = this };
+                GoogleDriveDirectory dir = new GoogleDriveDirectory(FullName, FS) { Parent = this };
                 dir.SetData(JsonConvert.SerializeObject(ex.Result));
-
                 FS.Refs[dir.FullName]=dir;
                 _directories.Add(dir);
                 return new FileSystemResult<IDirectory>(dir);
@@ -80,30 +76,29 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             FileSystemResult<dynamic> fr = await List(url);
             if (!fr.IsOk)
                 return new FileSystemResult(fr.Error);
-            _directories = new List<GoogleDriveDirectory>();
             _files = new List<GoogleDriveFile>();
-            string parentpath = string.Empty;
-            if (!IsRoot)
-                parentpath = FullName;
+            List<IDirectory> dirlist = new List<IDirectory>();
             foreach (dynamic v in fr.Result)
             {
                 if (v.mimeType == "application/vnd.google-apps.folder")
                 {
-                    GoogleDriveDirectory dir = new GoogleDriveDirectory(parentpath, FS) {Parent = this};
+                    GoogleDriveDirectory dir = new GoogleDriveDirectory(FullName, FS) {Parent = this};
                     dir.SetData(JsonConvert.SerializeObject(v));
-                    FS.Refs[dir.FullName] = dir;
-                    _directories.Add(dir);
+                    if ((dir.Attributes & ObjectAttributes.Trashed) != ObjectAttributes.Trashed)
+                        dirlist.Add(dir);
 
                 }
                 else
                 {
-                    GoogleDriveFile file = new GoogleDriveFile(parentpath, FS) {Parent = this};
+                    GoogleDriveFile file = new GoogleDriveFile(FullName, FS) {Parent = this};
                     file.SetData(JsonConvert.SerializeObject(v));
                     _files.Add(file);
 
                 }
             }
-                IsPopulated = true;
+            FS.Refs.AddDirectories(dirlist,this);
+            _directories = dirlist.Cast<GoogleDriveDirectory>().ToList();
+            IsPopulated = true;
             return new FileSystemResult();
         }
 

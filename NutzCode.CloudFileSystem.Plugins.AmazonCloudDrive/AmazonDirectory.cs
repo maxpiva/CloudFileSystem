@@ -70,16 +70,15 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                 FileSystemResult<dynamic> fr = await List(url);
                 if (!fr.IsOk)
                     return new FileSystemResult(fr.Error);
-                _directories = new List<AmazonDirectory>();
                 _files = new List<AmazonFile>();
+                List<IDirectory> dirlist = new List<IDirectory>();
                 foreach (dynamic v in fr.Result)
                 {
-                    if (v.kind == "FOLDER")
+                    if (v.kind == "FOLDER") 
                     {
                         AmazonDirectory dir = new AmazonDirectory(FullName, FS) { Parent = this };
                         dir.SetData(JsonConvert.SerializeObject(v));
-                        FS.Refs[dir.FullName] = dir;
-                        _directories.Add(dir);
+                        dirlist.Add(dir);
 
                     }
                     else if (v.kind == "FILE")
@@ -90,6 +89,8 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
                     }
                 }
+                FS.Refs.AddDirectories(dirlist, this);
+                _directories = dirlist.Cast<AmazonDirectory>().ToList();
                 IsPopulated = true;
                 return new FileSystemResult();
             }           

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web.StreamProvider;
@@ -11,6 +12,13 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
     {
         public DirectoryCache(int capacity) : base(capacity)
         {
+        }
+        [MethodImpl(MethodImplOptions.Synchronized)]
+        public void AddDirectories(List<IDirectory> dirs, IDirectory parent)
+        {
+            List<string> oldirs = parent.Directories.Select(a => a.FullName).ToList();
+            oldirs.Except(dirs.Select(a => a.FullName)).ToList().ForEach(Remove);
+            dirs.ForEach(a=>this[a.FullName]=a);
         }
 
         private async Task<FileSystemResult<IObject>> GetFromPath(IDirectory d, string path)

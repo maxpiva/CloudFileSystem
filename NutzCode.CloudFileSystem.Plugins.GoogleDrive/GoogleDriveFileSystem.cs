@@ -41,6 +41,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         {
             GoogleDriveFileSystem am = new GoogleDriveFileSystem(provider);
             am.FS = am;
+            am.FsName = fname;
             am.OAuth.OAuthUrl = GoogleOAuth;
             am.OAuth.EndPointUrl = null;
             am.OAuth.OAuthLoginUrl = GoogleOAuthLogin;
