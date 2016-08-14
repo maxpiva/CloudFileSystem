@@ -15,6 +15,8 @@ Amazon Cloud Drive: **Beta**
 
 Google Drive: **Alpha**
 
-OneDrive: **Not even started.**
+OneDrive: **Skeleton: Not even started**
+
+Box.Net: ** Zero **
 
 
