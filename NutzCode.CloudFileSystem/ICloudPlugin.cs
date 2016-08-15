@@ -12,7 +12,7 @@ namespace NutzCode.CloudFileSystem
     public interface ICloudPlugin
     {
         string Name { get; }
-        Bitmap Icon { get; }
+        byte[] Icon { get; }
         List<AuthorizationRequirement> AuthorizationRequirements { get; }
         Task<FileSystemResult<IFileSystem>> InitAsync(string filesystemname, IOAuthProvider oAuthProvider, Dictionary<string, object> settings, string userauthorization = null);
     }

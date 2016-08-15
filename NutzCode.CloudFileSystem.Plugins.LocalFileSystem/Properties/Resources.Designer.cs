@@ -61,12 +61,12 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static System.Drawing.Bitmap FileIcon {
+        internal static byte[] Image48x48 {
             get {
-                object obj = ResourceManager.GetObject("FileIcon", resourceCulture);
-                return ((System.Drawing.Bitmap)(obj));
+                object obj = ResourceManager.GetObject("Image48x48", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

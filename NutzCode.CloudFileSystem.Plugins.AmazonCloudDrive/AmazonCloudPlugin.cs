@@ -10,7 +10,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
     {
 
         public string Name => "Amazon Cloud Drive";
-        public Bitmap Icon => Resources.Image48x48;
+        public byte[] Icon => Resources.Image48x48;
 
         public const string ClientAppFriendlyName = "ClientAppFriendlyName";
 

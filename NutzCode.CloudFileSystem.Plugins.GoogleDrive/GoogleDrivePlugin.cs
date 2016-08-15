@@ -10,7 +10,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
     {
 
         public string Name => "Google Drive";
-        public Bitmap Icon => Resources.Image48x48;
+        public byte[] Icon => Resources.Image48x48;
         public const string AcknowledgeAbuse = "AcknowledgeAbuse";
 
         public List<AuthorizationRequirement> AuthorizationRequirements

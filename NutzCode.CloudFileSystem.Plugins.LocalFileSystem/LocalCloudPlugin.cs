@@ -11,7 +11,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
     public class LocalCloudPlugin : ICloudPlugin
     {
         public string Name => "Local File System";
-        public Bitmap Icon => Resources.FileIcon;
+        public byte[] Icon => Resources.Image48x48;
 
         public List<AuthorizationRequirement> AuthorizationRequirements => new List<AuthorizationRequirement>();
 
