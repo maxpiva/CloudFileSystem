@@ -4,10 +4,9 @@
         xmlns:local="clr-namespace:NutzCode.CloudFileSystem.OAuth.Windows.WPF"
         ShowInTaskbar="False" WindowStyle="ToolWindow"
         WindowStartupLocation="CenterScreen" Topmost="False" SizeToContent="Manual"
-        Title="OAuth Login" Height="620" Width="768">
+        Title="OAuth Login" Height="620" Width="768" Loaded="Window_Loaded">
     
     <Grid>
         <WebBrowser Name="WebView" Margin="0,0,0,0"/>
-
     </Grid>
 </Window>

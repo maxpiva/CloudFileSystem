@@ -25,7 +25,7 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WPF
         public const string AuthUrl = "{4}?client_id={0}&scope={1}&response_type={2}&redirect_uri={3}";
         public string Code { get; private set; }
         public List<string> Scopes { get; private set; } = new List<string>();
-
+        private Uri uri;
         public LoginForm(string name, string authurl, string clientid, List<string> scopes, string redirect)
         {
             InitializeComponent();
@@ -34,7 +34,8 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WPF
             WebView.Navigating += WebView_Navigating;
             string responsetype = "code";
             string url = string.Format(AuthUrl, HttpUtility.UrlEncode(clientid), HttpUtility.UrlEncode(string.Join(" ", scopes)), HttpUtility.UrlEncode(responsetype), HttpUtility.UrlEncode(redirect), authurl);
-            WebView.Navigate(new Uri(url));
+            uri=new Uri(url);
+            this.Visibility=Visibility.Visible;
         }
 
         private void WebView_Navigating(object sender, NavigatingCancelEventArgs e)
@@ -81,5 +82,9 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WPF
             }
         }
 
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            WebView.Navigate(uri);
+        }
     }
 }

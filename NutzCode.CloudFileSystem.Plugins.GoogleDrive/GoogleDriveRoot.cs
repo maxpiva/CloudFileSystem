@@ -1,5 +1,7 @@
 ﻿
 
+
+
 namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 {
     public class GoogleDriveRoot : GoogleDriveDirectory
@@ -7,12 +9,14 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         public override string Id => "ROOT";
         internal string FsName=string.Empty;
 
+
         public GoogleDriveRoot(GoogleDriveFileSystem fs) : base(string.Empty, fs)
         {
             IsRoot = true;
         }
 
         public override string Name => FsName;
+
 
     }
 }

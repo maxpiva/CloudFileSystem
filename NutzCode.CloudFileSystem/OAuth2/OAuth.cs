@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NutzCode.Libraries.Web;
 
-[assembly: InternalsVisibleTo("NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive"), InternalsVisibleTo("NutzCode.CloudFileSystem.Plugins.GoogleDrive")]
+[assembly: InternalsVisibleTo("NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive"), InternalsVisibleTo("NutzCode.CloudFileSystem.Plugins.GoogleDrive"), InternalsVisibleTo("NutzCode.CloudFileSystem.Plugins.OneDrive")]
 namespace NutzCode.CloudFileSystem.OAuth2
 {
     public class OAuth 
@@ -187,7 +187,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
                 }
                 using (WebStream w = await WebStreamFactory.Instance.CreateStreamAsync(pars))
                 {
-                    if ((w.StatusCode == HttpStatusCode.OK) || (w.StatusCode == HttpStatusCode.Created) || (w.StatusCode == HttpStatusCode.Accepted))
+                    if ((w.StatusCode == HttpStatusCode.OK) || (w.StatusCode == HttpStatusCode.Created) || (w.StatusCode == HttpStatusCode.Accepted) || (w.StatusCode == HttpStatusCode.NoContent)) //TODO move this to a parameter
                     {
                         StreamReader rd = new StreamReader(w);
                         string d = await rd.ReadToEndAsync();
