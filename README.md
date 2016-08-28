@@ -13,9 +13,9 @@ Local File System: **Beta**
 
 Amazon Cloud Drive: **Beta**  *Write Disabled*
 
-Google Drive: **Alpha**  *Write Disabled*
+Google Drive: **Beta**  *Write Disabled*
 
-OneDrive: **Skeleton: Not even started**
+OneDrive: **Alpha**    *Write Disabled*
 
 Box.Net: **Zero**
 
