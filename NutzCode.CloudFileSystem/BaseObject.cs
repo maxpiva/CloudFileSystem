@@ -25,7 +25,7 @@ namespace NutzCode.CloudFileSystem
             internal set
             {
                 _parent = value;
-                _parentpath = value.FullName;
+                _parentpath = value?.FullName ?? string.Empty;
             }
         }
 
