@@ -124,20 +124,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             {
                 string oldFullname = this.FullName;
                 this.SetData(ex.Result);
-                if (this is GoogleDriveFile)
-                {
-                    ((GoogleDriveDirectory)Parent)._files.Remove((GoogleDriveFile)this);
-                    dest._files.Add((GoogleDriveFile)this);
-                }
-                else if (this is GoogleDriveDirectory)
-                {
-                    FS.Refs.Remove(oldFullname);
-                    ((GoogleDriveDirectory)Parent)._directories.Remove((GoogleDriveDirectory)this);
-                    dest._directories.Add((GoogleDriveDirectory)this);
-                    FS.Refs[FullName] = (GoogleDriveDirectory)this;
-
-                }
-                Parent = ((GoogleDriveDirectory)destination);
+                ChangeObjectDirectory<GoogleDriveDirectory,GoogleDriveFile>(oldFullname,FS.Refs,this,(GoogleDriveDirectory)Parent,dest);
                 return new FileSystemResult();
             }
             return new FileSystemResult<IDirectory>(ex.Error);
@@ -164,14 +151,14 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                     GoogleDriveFile f = new GoogleDriveFile(destination.FullName, this.FS);
                     f.SetData(this.Metadata, this.MetadataExpanded, this.MetadataMime);
                     f.Parent = destination;
-                    dest._files.Add(f);
+                    dest.Files.Add(f);
                 }
                 else if (this is GoogleDriveDirectory)
                 {
                     GoogleDriveDirectory d = new GoogleDriveDirectory(destination.FullName, this.FS);
                     d.SetData(this.Metadata, this.MetadataExpanded, this.MetadataMime);
                     d.Parent = destination;
-                    dest._directories.Add(d);
+                    dest.Directories.Add(d);
                     FS.Refs[d.FullName] = d;
                 }
                 return new FileSystemResult();

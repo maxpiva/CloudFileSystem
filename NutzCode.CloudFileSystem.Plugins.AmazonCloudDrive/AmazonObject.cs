@@ -199,20 +199,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             {
                 string oldFullname = this.FullName;
                 this.SetData(ex.Result);
-                if (this is AmazonFile)
-                {
-                    ((AmazonDirectory)Parent)._files.Remove((AmazonFile)this);
-                    dest._files.Add((AmazonFile)this);
-                }
-                else if (this is AmazonDirectory)
-                {
-                    FS.Refs.Remove(oldFullname);
-                    ((AmazonDirectory)Parent)._directories.Remove((AmazonDirectory)this);
-                    dest._directories.Add((AmazonDirectory)this);
-                    FS.Refs[FullName] = (AmazonDirectory)this;
-
-                }
-                this.Parent = ((AmazonDirectory) destination);
+                ChangeObjectDirectory<AmazonDirectory,AmazonFile>(oldFullname,FS.Refs,this,(AmazonDirectory)Parent,dest);
                 return new FileSystemResult();
             }
             return new FileSystemResult<IDirectory>(ex.Error);
@@ -237,14 +224,14 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                     AmazonFile f=new AmazonFile(destination.FullName,this.FS);
                     f.SetData(this.Metadata,this.MetadataExpanded,this.MetadataMime);
                     f.Parent = destination;
-                    dest._files.Add(f);
+                    dest.IntFiles.Add(f);
                 }
                 else if (this is AmazonDirectory)
                 {
                     AmazonDirectory d=new AmazonDirectory(destination.FullName,this.FS);
                     d.SetData(this.Metadata, this.MetadataExpanded, this.MetadataMime);
                     d.Parent = destination;
-                    dest._directories.Add(d);
+                    dest.IntDirectories.Add(d);
                     FS.Refs[d.FullName] = d;
                 }
                 return new FileSystemResult();

@@ -17,7 +17,17 @@ namespace NutzCode.CloudFileSystem
         public virtual string MetadataMime { get; private set; }
 
 
-        public IDirectory Parent { get; internal set; } = null;
+        private IDirectory _parent = null;
+
+        public IDirectory Parent
+        {
+            get { return _parent; }
+            internal set
+            {
+                _parent = value;
+                _parentpath = value.FullName;
+            }
+        }
 
         internal virtual Mappings Mappings { get; }
 
@@ -50,7 +60,22 @@ namespace NutzCode.CloudFileSystem
             MetadataExpanded = f.MetadataExpanded;
 
         }
-
+        internal void ChangeObjectDirectory<T, S>(string oldname, DirectoryCache.DirectoryCache cache, BaseObject obj, T source, T destination) where T : IDirectory, IOwnDirectory<S, T> where S : IFile
+        {
+            Parent = destination;
+            if (this is IFile)
+            {
+                source.IntFiles.Remove((S)(object)obj);
+                destination.IntFiles.Add((S)(object)obj);
+            }
+            else if (this is IDirectory)
+            {
+                cache.Remove(oldname);
+                source.IntDirectories.Remove((T)(object)obj);
+                destination.IntDirectories.Add((T)(object)obj);
+                cache[FullName] = (T)(object)this;
+            }
+        }
         public virtual async Task<FileSystemResult<Stream>> OpenReadAsync()
         {
             return await Task.FromResult(new FileSystemResult<Stream>(new SeekableWebStream(GetKey(), Size, CloudFileSystemPluginFactory.Instance.WebDataProvider, GetSeekableWebParameters)));
@@ -72,6 +97,9 @@ namespace NutzCode.CloudFileSystem
             }
             return false;
         }
+
+
+
         internal virtual bool InternalPropertyExists(ExpandoObject eobj, string prop)
         {
             if (MetadataExpanded != null)

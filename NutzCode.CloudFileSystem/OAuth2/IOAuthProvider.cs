@@ -28,6 +28,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
         public string ClientId { get; set; }
         public List<string> Scopes { get; set; }
         public string RedirectUri { get; set; }
+        public bool ScopesCommaSeparated { get; set; }
     }
 
     public class OAuthProviderFactory

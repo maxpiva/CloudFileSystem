@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="AuthorizationFactory.cs" />
     <Compile Include="AuthorizationRequirement.cs" />
+    <Compile Include="IOwnDirectory.cs" />
     <Compile Include="BaseObject.cs" />
     <Compile Include="CloudFileSystemPluginFactory.cs" />
     <Compile Include="DirectoryCache\DirectoryCache.cs" />

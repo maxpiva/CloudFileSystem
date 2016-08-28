@@ -32,7 +32,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             Sizes = new FileSystemSizes();
             // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-            foreach (LocalDrive ld in directories)
+            foreach (LocalDrive ld in IntDirectories)
             {
                 try
                 {
@@ -42,6 +42,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 }
                 catch (Exception) //Cdrom and others
                 {
+                    //ignored
                 }
             }
             return await Task.FromResult(new FileSystemResult<FileSystemSizes>(Sizes));

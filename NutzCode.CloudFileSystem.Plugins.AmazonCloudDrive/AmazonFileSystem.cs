@@ -67,7 +67,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             bool userauth = !string.IsNullOrEmpty(userauthorization);
             if (userauth)
                 am.DeserializeAuth(userauthorization);
-            FileSystemResult r = await am.OAuth.Login(settings, pluginanme, userauth);
+            FileSystemResult r = await am.OAuth.Login(settings, pluginanme, userauth,false);
             if (!r.IsOk)
                 return new FileSystemResult<AmazonFileSystem>(r.Error);
             r = await am.CheckExpirations();

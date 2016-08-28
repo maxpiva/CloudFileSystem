@@ -11,18 +11,18 @@ using NutzCode.Libraries.Web;
 
 namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 {
-    public class GoogleDriveDirectory : GoogleDriveObject, IDirectory
+    public class GoogleDriveDirectory : GoogleDriveObject, IDirectory, IOwnDirectory<GoogleDriveFile,GoogleDriveDirectory>
     {
         public const string GoogleList = "https://www.googleapis.com/drive/v2/files?q='{0}'+in+parents";
         public const string GoogleCreateDir = "https://www.googleapis.com/drive/v2/files";
 
 
+        public List<GoogleDriveDirectory> IntDirectories { get; set; }=new List<GoogleDriveDirectory>();
+        public List<GoogleDriveFile> IntFiles { get; set; }=new List<GoogleDriveFile>();
 
-        internal List<GoogleDriveDirectory> _directories = new List<GoogleDriveDirectory>();
-        internal List<GoogleDriveFile> _files = new List<GoogleDriveFile>();
 
-        public List<IDirectory> Directories => _directories.Cast<IDirectory>().ToList();
-        public List<IFile> Files => _files.Cast<IFile>().ToList();
+        public List<IDirectory> Directories => IntDirectories.Cast<IDirectory>().ToList();
+        public List<IFile> Files => IntFiles.Cast<IFile>().ToList();
 
 
         public bool IsPopulated { get; private set; }
@@ -61,7 +61,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 GoogleDriveDirectory dir = new GoogleDriveDirectory(FullName, FS) { Parent = this };
                 dir.SetData(JsonConvert.SerializeObject(ex.Result));
                 FS.Refs[dir.FullName]=dir;
-                _directories.Add(dir);
+                IntDirectories.Add(dir);
                 return new FileSystemResult<IDirectory>(dir);
             }
             return new FileSystemResult<IDirectory>(ex.Error);
@@ -76,7 +76,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             FileSystemResult<dynamic> fr = await List(url);
             if (!fr.IsOk)
                 return new FileSystemResult(fr.Error);
-            _files = new List<GoogleDriveFile>();
+            IntFiles = new List<GoogleDriveFile>();
             List<IDirectory> dirlist = new List<IDirectory>();
             foreach (dynamic v in fr.Result)
             {
@@ -92,12 +92,12 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 {
                     GoogleDriveFile file = new GoogleDriveFile(FullName, FS) {Parent = this};
                     file.SetData(JsonConvert.SerializeObject(v));
-                    _files.Add(file);
+                    IntFiles.Add(file);
 
                 }
             }
             FS.Refs.AddDirectories(dirlist,this);
-            _directories = dirlist.Cast<GoogleDriveDirectory>().ToList();
+            IntDirectories = dirlist.Cast<GoogleDriveDirectory>().ToList();
             IsPopulated = true;
             return new FileSystemResult();
         }
@@ -115,5 +115,6 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         {
             throw new NotImplementedException();
         }
+
     }
 }

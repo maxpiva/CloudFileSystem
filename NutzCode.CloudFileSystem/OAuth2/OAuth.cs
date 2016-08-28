@@ -60,7 +60,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
                 };
 
 
-        internal virtual async Task<FileSystemResult> Login(Dictionary<string, object> authorization, string name, bool isUserAuth)
+        internal virtual async Task<FileSystemResult> Login(Dictionary<string, object> authorization, string name, bool isUserAuth, bool scopescommaseparated)
         {
 
             if (!authorization.ContainsKey(ClientIdString) || !(authorization[ClientIdString] is string))
@@ -88,7 +88,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
             }
             if (_provider==null)
                 return new FileSystemResult<IFileSystem>("Cannot find valid Authorization Provider for " + name);
-            AuthRequest request = new AuthRequest { Name = name, LoginUrl = OAuthLoginUrl, ClientId = ClientId, Scopes = Scopes, RedirectUri = RedirectUri };
+            AuthRequest request = new AuthRequest { Name = name, LoginUrl = OAuthLoginUrl, ClientId = ClientId, Scopes = Scopes, RedirectUri = RedirectUri , ScopesCommaSeparated = scopescommaseparated};
             AuthResult result = await _provider.Login(request);
 
             if (result.HasError)

@@ -50,7 +50,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public override async Task<FileSystemResult> PopulateAsync()
         {
-            directories = DriveInfo.GetDrives().Select(a => new LocalDrive(a,FS) {Parent=this }).Cast<DirectoryImplementation>().ToList();
+            IntDirectories = DriveInfo.GetDrives().Select(a => new LocalDrive(a,FS) {Parent=this }).Cast<DirectoryImplementation>().ToList();
             IsPopulated = true;
             return await Task.FromResult(new FileSystemResult());
         }

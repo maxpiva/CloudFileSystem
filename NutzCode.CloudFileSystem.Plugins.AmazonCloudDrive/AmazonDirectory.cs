@@ -12,7 +12,7 @@ using NutzCode.Libraries.Web;
 
 namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 {
-    public class AmazonDirectory : AmazonObject, IDirectory
+    public class AmazonDirectory : AmazonObject, IDirectory, IOwnDirectory<AmazonFile,AmazonDirectory>
     {
         internal const string AmazonRoot = "{0}/nodes?filters=isRoot:true AND status:AVAILABLE&asset=ALL";
         internal const string AmazonList = "{0}/nodes?filters=status:AVAILABLE AND parents:{1}&asset=ALL";
@@ -20,11 +20,12 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         internal const string AmazonCreate = "{0}/nodes";
         internal const string AmazonCreateDirectory = "{0}/nodes?localId={1}";
 
-        internal List<AmazonDirectory> _directories=new List<AmazonDirectory>();
-        internal List<AmazonFile> _files = new List<AmazonFile>();
 
-        public List<IDirectory> Directories => _directories.Cast<IDirectory>().ToList();
-        public List<IFile> Files => _files.Cast<IFile>().ToList();
+        public List<AmazonDirectory> IntDirectories { get; set; }=new List<AmazonDirectory>();
+        public List<AmazonFile> IntFiles { get; set; }=new List<AmazonFile>();
+
+        public List<IDirectory> Directories => IntDirectories.Cast<IDirectory>().ToList();
+        public List<IFile> Files => IntFiles.Cast<IFile>().ToList();
 
 
         public bool IsPopulated { get; private set; }
@@ -70,7 +71,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                 FileSystemResult<dynamic> fr = await List(url);
                 if (!fr.IsOk)
                     return new FileSystemResult(fr.Error);
-                _files = new List<AmazonFile>();
+                IntFiles = new List<AmazonFile>();
                 List<IDirectory> dirlist = new List<IDirectory>();
                 foreach (dynamic v in fr.Result)
                 {
@@ -85,12 +86,12 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                     {
                         AmazonFile f = new AmazonFile(FullName, FS) { Parent = this};
                         f.SetData(JsonConvert.SerializeObject(v));
-                        _files.Add(f);
+                        IntFiles.Add(f);
 
                     }
                 }
                 FS.Refs.AddDirectories(dirlist, this);
-                _directories = dirlist.Cast<AmazonDirectory>().ToList();
+                IntDirectories = dirlist.Cast<AmazonDirectory>().ToList();
                 IsPopulated = true;
                 return new FileSystemResult();
             }           
@@ -107,7 +108,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 #if DEBUG || EXPERIMENTAL
             FileSystemResult<IFile> f=await InternalCreateFile(name,"FILE",false, this,readstream,token,progress, properties);
             if (f.IsOk)
-                _files.Add((AmazonFile)f.Result);
+                IntFiles.Add((AmazonFile)f.Result);
             return f;
 #else
             throw new NotSupportedException();
@@ -138,7 +139,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                 AmazonDirectory dir = new AmazonDirectory(this.FullName, FS) { Parent = this };
                 dir.SetData(ex.Result);
                 FS.Refs[dir.FullName] = dir;
-                _directories.Add(dir);
+                IntDirectories.Add(dir);
                 return new FileSystemResult<IDirectory>(dir);
             }
             return new FileSystemResult<IDirectory>(ex.Error);
@@ -149,5 +150,6 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         {
             throw new NotSupportedException();
         }
+
     }
 }

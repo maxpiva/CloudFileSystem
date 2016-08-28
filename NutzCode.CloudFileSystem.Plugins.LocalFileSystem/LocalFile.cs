@@ -75,8 +75,8 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 return new FileSystemResult("Root cannot be destination");
             string destname = Path.Combine(to.FullName, Name);
             File.Move(FullName, destname);
-            ((DirectoryImplementation)Parent).files.Remove(this);
-            to.files.Add(this);
+            ((DirectoryImplementation)Parent).IntFiles.Remove(this);
+            to.IntFiles.Add(this);
             return await Task.FromResult(new FileSystemResult());
         }
 
@@ -93,7 +93,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             FileInfo finfo = new FileInfo(destname);
             LocalFile local = new LocalFile(finfo,FS);
             local.Parent = destination;
-            to.files.Add(local);
+            to.IntFiles.Add(local);
             return await Task.FromResult(new FileSystemResult());
         }
 
@@ -117,7 +117,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public override async Task<FileSystemResult> DeleteAsync(bool skipTrash)
         {
             File.Delete(FullName);
-            ((DirectoryImplementation)Parent).files.Remove(this);
+            ((DirectoryImplementation)Parent).IntFiles.Remove(this);
             return await Task.FromResult(new FileSystemResult());
         }
 

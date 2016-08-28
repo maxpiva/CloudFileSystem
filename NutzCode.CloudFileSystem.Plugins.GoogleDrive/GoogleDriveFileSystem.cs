@@ -49,7 +49,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             bool userauth = !string.IsNullOrEmpty(userauthorization);
             if (userauth)
                 am.DeserializeAuth(userauthorization);
-            FileSystemResult r = await am.OAuth.Login(settings, pluginanme, userauth);
+            FileSystemResult r = await am.OAuth.Login(settings, pluginanme, userauth,false);
             if (!r.IsOk)
                 return new FileSystemResult<GoogleDriveFileSystem>(r.Error);
             r = await am.OAuth.MayRefreshToken();

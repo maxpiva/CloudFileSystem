@@ -64,8 +64,8 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             string oldFullname = this.FullName;
             Directory.Move(FullName, destname);
             FS.Refs.Remove(oldFullname);
-            ((DirectoryImplementation)Parent).directories.Remove(this);
-            to.directories.Add(this);
+            ((DirectoryImplementation)Parent).IntDirectories.Remove(this);
+            to.IntDirectories.Add(this);
             Parent = destination;
             FS.Refs[FullName] = this;
             return await Task.FromResult(new FileSystemResult());
@@ -96,7 +96,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public override async Task<FileSystemResult> DeleteAsync(bool skipTrash)
         {
             Directory.Delete(FullName,true);
-            ((DirectoryImplementation)Parent).directories.Remove(this);
+            ((DirectoryImplementation)Parent).IntDirectories.Remove(this);
             return await Task.FromResult(new FileSystemResult());
         }
     }

@@ -7,15 +7,14 @@ using System.Threading.Tasks;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
-    public abstract class DirectoryImplementation : LocalObject, IDirectory
+    public abstract class DirectoryImplementation : LocalObject, IDirectory, IOwnDirectory<LocalFile,DirectoryImplementation>
     {
-        // ReSharper disable once InconsistentNaming
-        internal List<DirectoryImplementation> directories = new List<DirectoryImplementation>();
-        // ReSharper disable once InconsistentNaming
-        internal List<LocalFile> files = new List<LocalFile>();
+        public List<DirectoryImplementation> IntDirectories { get; set; }=new List<DirectoryImplementation>();
+        public List<LocalFile> IntFiles { get; set; }=new List<LocalFile>();
 
-        public List<IDirectory> Directories => directories.Cast<IDirectory>().ToList();
-        public List<IFile> Files => files.Cast<IFile>().ToList();
+
+        public List<IDirectory> Directories => IntDirectories.Cast<IDirectory>().ToList();
+        public List<IFile> Files => IntFiles.Cast<IFile>().ToList();
 
         public abstract void CreateDirectory(string name);
         public abstract DirectoryInfo[] GetDirectories();
@@ -47,7 +46,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 LocalDirectory f = new LocalDirectory(dinfo,FS);
                 f.Parent = this;
                 FS.Refs[f.FullName] = f;
-                directories.Add(f);
+                IntDirectories.Add(f);
                 return await Task.FromResult(new FileSystemResult<IDirectory>(f));
 
             }
@@ -62,11 +61,13 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public virtual async Task<FileSystemResult> PopulateAsync()
         {
-            directories = GetDirectories().Select(a => new LocalDirectory(a,FS) {Parent = this}).Cast<DirectoryImplementation>().ToList();
-            directories.ForEach(a=>FS.Refs[a.FullName]=a);
-            files = GetFiles().Select(a => new LocalFile(a,FS) { Parent=this }).ToList();
+            IntDirectories = GetDirectories().Select(a => new LocalDirectory(a,FS) {Parent = this}).Cast<DirectoryImplementation>().ToList();
+            IntDirectories.ForEach(a=>FS.Refs[a.FullName]=a);
+            IntFiles = GetFiles().Select(a => new LocalFile(a,FS) { Parent=this }).ToList();
             IsPopulated = true;
             return await Task.FromResult(new FileSystemResult());
         }
+
+
     }
 }
