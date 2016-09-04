@@ -156,6 +156,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
             NameValueCollection nm = new NameValueCollection();
             nm.Add("Authorization", "Bearer " + Token.AccessToken);
             pars.Headers = nm;
+            pars.ErrorCallbackParameter = this;
             pars.ErrorCallback = ErrorCallback;
             return pars;
         }
