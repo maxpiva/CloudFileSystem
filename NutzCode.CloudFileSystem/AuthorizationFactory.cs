@@ -20,7 +20,7 @@ namespace NutzCode.CloudFileSystem
         public IAppAuthorization AuthorizationProvider { get; set; }
 
 
-        public AuthorizationFactory()
+        public AuthorizationFactory(string dll=null)
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             string dirname = System.IO.Path.GetDirectoryName(assembly.GetName().CodeBase);
@@ -30,7 +30,8 @@ namespace NutzCode.CloudFileSystem
                     dirname = dirname.Substring(6);
                 AggregateCatalog catalog = new AggregateCatalog();
                 catalog.Catalogs.Add(new AssemblyCatalog(assembly));
-                catalog.Catalogs.Add(new DirectoryCatalog(dirname, "*.dll"));
+                if (dll!=null)
+                    catalog.Catalogs.Add(new DirectoryCatalog(dirname, dll));
                 var container = new CompositionContainer(catalog);
                 container.ComposeParts(this);
             }
