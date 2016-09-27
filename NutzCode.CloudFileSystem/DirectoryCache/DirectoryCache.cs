@@ -43,7 +43,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                 {
                     foreach (IDirectory dn in d.Directories)
                     {
-                        if (dn.Name.Equals(dirname, StringComparison.InvariantCultureIgnoreCase))
+                        if (dn.Name.Equals(dirname.Replace("*","\\"), StringComparison.InvariantCultureIgnoreCase))
                         {
                             fnd = dn;
                             break;
@@ -66,12 +66,12 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
             {
                 foreach (IFile dn in d.Files)
                 {
-                    if (dn.Name.Equals(path, StringComparison.InvariantCultureIgnoreCase))
+                    if (dn.Name.Equals(path.Replace("*","\\"), StringComparison.InvariantCultureIgnoreCase))
                         return new FileSystemResult<IObject>(dn);
                 }
                 foreach (IDirectory dn in d.Directories)
                 {
-                    if (dn.Name.Equals(path, StringComparison.InvariantCultureIgnoreCase))
+                    if (dn.Name.Equals(path.Replace("*", "\\"), StringComparison.InvariantCultureIgnoreCase))
                         return new FileSystemResult<IObject>(dn);
                 }
                 if (populated)
@@ -91,7 +91,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
             if (fullpath=="/" || fullpath==string.Empty || fullpath==fs.FullName)
                 return new FileSystemResult<IObject>(fs);
 
-            IDirectory d = this[fullpath];
+            IDirectory d = this[fullpath.Replace("*", "\\")];
             string lastpart = string.Empty;
             if (d != null)
                 return new FileSystemResult<IObject>(d);
@@ -108,7 +108,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                     lastpart = fullpath.Substring(idx) + lastpart;
                     fullpath = fullpath.Substring(0, idx);
                 }
-                d = this[fullpath];
+                d = this[fullpath.Replace("*","\\")];
                 if (d != null)
                     break;
             }

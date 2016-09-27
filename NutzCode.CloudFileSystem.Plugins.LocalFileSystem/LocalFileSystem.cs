@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
@@ -50,6 +51,26 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
         {
+            if (path.StartsWith("\\\\"))
+            {
+                int idx = path.IndexOf("\\", 2);
+                if (idx >= 0)
+                {
+                    idx = path.IndexOf("\\", idx + 1);
+                    if (idx < 0)
+                        idx = path.Length;
+                }
+                else
+                    idx = path.Length;
+                string share = path.Substring(0, idx);
+                if (!System.IO.Directory.Exists(share))
+                    return new FileSystemResult<IObject>("Not found");
+                if (!FS.Directories.Any(a => a.FullName == share))
+                    FS.AddUncPath(share);
+                path = path.Replace(share, share.Replace("\\", "*"));
+            }
+
+
             return await Refs.ObjectFromPath(this, path);
         }
 

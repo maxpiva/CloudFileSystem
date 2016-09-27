@@ -9,7 +9,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
     {
         private DirectoryInfo _directory;
 
-        public override string Name => _directory?.Name ?? string.Empty;
+        public override string Name => ((Parent == null) ? _directory?.FullName : _directory?.Name) ?? string.Empty;
         public override DateTime? ModifiedDate => _directory?.LastWriteTime;
         public override DateTime? CreatedDate => _directory?.CreationTime;
         public override DateTime? LastViewed => _directory?.LastAccessTime;

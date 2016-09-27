@@ -24,6 +24,8 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
         }
 
+        private List<string> UncPaths=new List<string>();
+
         public LocalRoot(LocalFileSystem fs) : base(fs)
         {
             IsRoot = true;
@@ -51,10 +53,16 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public override async Task<FileSystemResult> PopulateAsync()
         {
             IntDirectories = DriveInfo.GetDrives().Select(a => new LocalDrive(a,FS) {Parent=this }).Cast<DirectoryImplementation>().ToList();
+            IntDirectories.AddRange(UncPaths.Select(a=>new LocalDirectory(new DirectoryInfo(a),FS)));
             IsPopulated = true;
             return await Task.FromResult(new FileSystemResult());
         }
 
+        internal void AddUncPath(string path)
+        {
+            UncPaths.Add(path);
+            IntDirectories.Add(new LocalDirectory(new DirectoryInfo(path),FS));
+        }
         public override async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
             return await Task.FromResult(new FileSystemResult("Unable to move a root drive"));
