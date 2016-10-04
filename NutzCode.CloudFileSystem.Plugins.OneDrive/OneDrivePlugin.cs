@@ -5,7 +5,7 @@ using NutzCode.CloudFileSystem.Plugins.OneDrive.Properties;
 
 namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 {
-    public class OneDrivePlugin
+    public class OneDrivePlugin : ICloudPlugin
     {
 
         public string Name => "One Drive";
