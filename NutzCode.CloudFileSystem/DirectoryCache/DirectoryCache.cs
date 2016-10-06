@@ -88,6 +88,8 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
         {
 
             fullpath = fullpath.Replace("/", "\\");
+            if (fullpath.EndsWith("\\"))
+                fullpath = fullpath.Substring(0, fullpath.Length - 1);
             if (fullpath=="/" || fullpath==string.Empty || fullpath==fs.FullName)
                 return new FileSystemResult<IObject>(fs);
 
