@@ -79,14 +79,16 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                     {
                         AmazonDirectory dir = new AmazonDirectory(FullName, FS) { Parent = this };
                         dir.SetData(JsonConvert.SerializeObject(v));
-                        dirlist.Add(dir);
+                        if ((dir.Attributes & ObjectAttributes.Trashed) != ObjectAttributes.Trashed)
+                            dirlist.Add(dir);
 
                     }
                     else if (v.kind == "FILE")
                     {
                         AmazonFile f = new AmazonFile(FullName, FS) { Parent = this};
                         f.SetData(JsonConvert.SerializeObject(v));
-                        IntFiles.Add(f);
+                        if ((f.Attributes & ObjectAttributes.Trashed) != ObjectAttributes.Trashed)
+                            IntFiles.Add(f);
 
                     }
                 }

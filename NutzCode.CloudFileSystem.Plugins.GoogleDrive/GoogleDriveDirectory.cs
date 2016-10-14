@@ -92,7 +92,8 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 {
                     GoogleDriveFile file = new GoogleDriveFile(FullName, FS) {Parent = this};
                     file.SetData(JsonConvert.SerializeObject(v));
-                    IntFiles.Add(file);
+                    if ((file.Attributes & ObjectAttributes.Trashed) != ObjectAttributes.Trashed)
+                        IntFiles.Add(file);
 
                 }
             }
