@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.IO;
+using Stream = System.IO.Stream;
 using System.Threading;
 using System.Threading.Tasks;
 

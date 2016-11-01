@@ -1,10 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.IO;
+using Stream = System.IO.Stream;
+using MemoryStream = System.IO.MemoryStream;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Path = Pri.LongPath.Path;
+using Directory = Pri.LongPath.Directory;
+using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+using File = Pri.LongPath.File;
+using FileSystemInfo = Pri.LongPath.FileSystemInfo;
 
 namespace NutzCode.CloudFileSystem
 {

@@ -35,6 +35,10 @@
       <HintPath>..\..\packages\MimeTypeMap.List.1.1.0\lib\MimeTypeMap.List.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Pri.LongPath, Version=2.0.40.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Pri.LongPath.2.0.40\lib\net45\Pri.LongPath.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />

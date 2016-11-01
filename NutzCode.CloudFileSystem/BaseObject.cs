@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.IO;
+using Stream = System.IO.Stream;
+using MemoryStream = System.IO.MemoryStream;
+using Path = Pri.LongPath.Path;
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web;
 

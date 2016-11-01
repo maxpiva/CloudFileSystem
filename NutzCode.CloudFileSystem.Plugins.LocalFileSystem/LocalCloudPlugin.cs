@@ -5,6 +5,13 @@ using System.Threading.Tasks;
 using NutzCode.CloudFileSystem;
 using NutzCode.CloudFileSystem.OAuth2;
 using NutzCode.CloudFileSystem.Plugins.LocalFileSystem.Properties;
+using Path = Pri.LongPath.Path;
+using Directory = Pri.LongPath.Directory;
+using DirectoryInfo = Pri.LongPath.DirectoryInfo;
+using File = Pri.LongPath.File;
+using FileSystemInfo = Pri.LongPath.FileSystemInfo;
+using FileInfo = Pri.LongPath.FileInfo;
+using Stream = System.IO.Stream;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {

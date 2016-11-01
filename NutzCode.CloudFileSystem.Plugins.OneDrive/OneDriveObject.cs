@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.IO;
+
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -9,7 +9,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NutzCode.CloudFileSystem.Plugins.OneDrive.Models;
-using File = System.IO.File;
+using Path = Pri.LongPath.Path;
+using Stream = System.IO.Stream;
+
 
 namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 {

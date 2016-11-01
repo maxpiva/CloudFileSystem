@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using Stream = System.IO.Stream;
+using MemoryStream = System.IO.MemoryStream;
 using System.Threading;
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web;

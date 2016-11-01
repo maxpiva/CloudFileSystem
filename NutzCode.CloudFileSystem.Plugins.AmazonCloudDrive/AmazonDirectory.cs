@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.IO;
+using Stream = System.IO.Stream;
+using MemoryStream = System.IO.MemoryStream;
+
 using System.Linq;
 using System.Text;
 using System.Threading;
