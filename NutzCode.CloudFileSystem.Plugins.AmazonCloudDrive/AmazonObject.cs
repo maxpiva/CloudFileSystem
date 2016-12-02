@@ -277,7 +277,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         {
             if (Parent == null)
                 return new FileSystemResult("Unable to delete root directory");
-            string url = AmazonTrash.FormatRest(FS.OAuth.EndPoint.MetadataUrl,((AmazonDirectory)Parent).Id, Id);
+            string url = AmazonTrash.FormatRest(FS.OAuth.EndPoint.MetadataUrl,Id);
 
             FileSystemResult<ExpandoObject> ex = await FS.OAuth.CreateMetadataStream<ExpandoObject>(url, null, null, HttpMethod.Put);
             if (ex.IsOk)

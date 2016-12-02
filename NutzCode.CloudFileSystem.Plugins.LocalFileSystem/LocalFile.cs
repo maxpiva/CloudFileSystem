@@ -123,7 +123,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public override async Task<FileSystemResult> DeleteAsync(bool skipTrash)
         {
-            File.Delete(FullName);
+            file.Delete();
             ((DirectoryImplementation)Parent).IntFiles.Remove(this);
             return await Task.FromResult(new FileSystemResult());
         }
