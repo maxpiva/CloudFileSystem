@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
 using System.Reflection;
@@ -27,11 +28,12 @@ namespace NutzCode.CloudFileSystem
         public CloudFileSystemPluginFactory()
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
-            string dirname = System.IO.Path.GetDirectoryName(assembly.GetName().CodeBase);
+            string codebase = assembly.CodeBase;
+            UriBuilder uri = new UriBuilder(codebase);
+            string dirname = Pri.LongPath.Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path).Replace("/","\\"));
             if (dirname != null)
             {
-                if (dirname.StartsWith(@"file:\"))
-                    dirname = dirname.Substring(6);
+
                 AggregateCatalog catalog = new AggregateCatalog();
                 catalog.Catalogs.Add(new AssemblyCatalog(assembly));
                 catalog.Catalogs.Add(new DirectoryCatalog(dirname,"NutzCode.CloudFileSystem.Plugins.*.dll"));
