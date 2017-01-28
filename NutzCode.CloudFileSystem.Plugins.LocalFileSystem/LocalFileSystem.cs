@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Path = Pri.LongPath.Path;
@@ -19,21 +19,25 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return string.Empty;
 
         }
+
         public SupportedFlags Supports => SupportedFlags.Nothing;
-        internal DirectoryCache.DirectoryCache Refs = new DirectoryCache.DirectoryCache(CloudFileSystemPluginFactory.DirectoryTreeCacheSize);
+
+        internal DirectoryCache.DirectoryCache Refs =
+            new DirectoryCache.DirectoryCache(CloudFileSystemPluginFactory.DirectoryTreeCacheSize);
 
 
         public LocalFileSystem() : base(null)
         {
             FS = this;
         }
+
         public static async Task<FileSystemResult<IFileSystem>> Create(string name)
         {
-            LocalFileSystem l=new LocalFileSystem();
+            LocalFileSystem l = new LocalFileSystem();
             l.fname = name;
-            FileSystemResult r=await l.PopulateAsync();
+            FileSystemResult r = await l.PopulateAsync();
             if (!r.IsOk)
-                return new FileSystemResult<IFileSystem>(r.Error);            
+                return new FileSystemResult<IFileSystem>(r.Error);
             return new FileSystemResult<IFileSystem>(l);
         }
 
@@ -59,25 +63,32 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
         {
-            if (path.StartsWith("\\\\"))
+            try
             {
-                int idx = path.IndexOf("\\", 2);
-                if (idx >= 0)
+                if (path.StartsWith("\\\\"))
                 {
-                    idx = path.IndexOf("\\", idx + 1);
-                    if (idx < 0)
+                    int idx = path.IndexOf("\\", 2);
+                    if (idx >= 0)
+                    {
+                        idx = path.IndexOf("\\", idx + 1);
+                        if (idx < 0)
+                            idx = path.Length;
+                    }
+                    else
                         idx = path.Length;
+                    string share = path.Substring(0, idx);
+                    if (!System.IO.Directory.Exists(share))
+                        return new FileSystemResult<IObject>("Not found");
+                    if (!FS.Directories.Any(a => a.FullName == share))
+                        FS.AddUncPath(share);
+                    path = path.Replace(share, share.Replace("\\", "*"));
                 }
-                else
-                    idx = path.Length;
-                string share = path.Substring(0, idx);
-                if (!System.IO.Directory.Exists(share))
-                    return new FileSystemResult<IObject>("Not found");
-                if (!FS.Directories.Any(a => a.FullName == share))
-                    FS.AddUncPath(share);
-                path = path.Replace(share, share.Replace("\\", "*"));
             }
-
+            catch (Exception e)
+            {
+                // Last ditch effort to catch errors, this needs to always succeed.
+                return new FileSystemResult<IObject>(e.Message);
+            }
 
             return await Refs.ObjectFromPath(this, path);
         }
@@ -87,9 +98,17 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public async Task<FileSystemResult<IDirectory>> GetRoot()
         {
-            LocalRoot l=new LocalRoot(FS);
-            await l.PopulateAsync();
-            return new FileSystemResult<IDirectory>(l);
+            try
+            {
+                LocalRoot l = new LocalRoot(FS);
+                await l.PopulateAsync();
+                return new FileSystemResult<IDirectory>(l);
+            }
+            catch (Exception e)
+            {
+                // Last ditch effort to catch errors, this needs to always succeed.
+                return new FileSystemResult<IDirectory>(e.Message);
+            }
         }
     }
 }
