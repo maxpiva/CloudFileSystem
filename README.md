@@ -1,7 +1,7 @@
-# NutzCode.CloudFileSystem
-Cloud Based FileSystem using plugins.
+# CloudFileSystem
+.NET Cloud Based FileSystem using plugins.
 
-Work In Progress (Use at your own risk)
+Work In Progress
 
 Developers wanted for unit testing, and insert your cloudprovider plugin here  ->...<-
 
@@ -15,7 +15,7 @@ Amazon Cloud Drive: **Beta**  *Write Disabled*
 
 Google Drive: **Beta**  *Write Disabled*
 
-OneDrive: **Alpha**    *Write Disabled*
+OneDrive: **Beta**    *Write Disabled*
 
 Box.Net: **Zero**
 
