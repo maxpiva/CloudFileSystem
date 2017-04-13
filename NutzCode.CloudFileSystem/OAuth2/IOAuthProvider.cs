@@ -39,7 +39,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
 
         public OAuthProviderFactory()
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
+            Assembly assembly = Assembly.GetEntryAssembly();
             string dirname = System.IO.Path.GetDirectoryName(assembly.GetName().CodeBase);
             if (dirname != null)
             {

@@ -22,7 +22,7 @@ namespace NutzCode.CloudFileSystem
 
         public AuthorizationFactory(string dll=null)
         {
-            Assembly assembly = Assembly.GetExecutingAssembly();
+            Assembly assembly = Assembly.GetEntryAssembly();
             string codebase = assembly.CodeBase;
             UriBuilder uri = new UriBuilder(codebase);
             string dirname = Pri.LongPath.Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path).Replace("/", "\\"));
