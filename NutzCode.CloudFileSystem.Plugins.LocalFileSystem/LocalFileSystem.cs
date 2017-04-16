@@ -77,7 +77,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                     else
                         idx = path.Length;
                     string share = path.Substring(0, idx);
-                    if (!System.IO.Directory.Exists(share))
+                    if (!Directory.Exists(share))
                         return new FileSystemResult<IObject>("Not found");
                     if (!FS.Directories.Any(a => a.FullName == share))
                         FS.AddUncPath(share);
