@@ -30,7 +30,7 @@ namespace NutzCode.CloudFileSystem
             Assembly assembly = Assembly.GetEntryAssembly();
             string codebase = assembly.CodeBase;
             UriBuilder uri = new UriBuilder(codebase);
-            string dirname = Pri.LongPath.Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path).Replace("/","\\"));
+            string dirname = Pri.LongPath.Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path).Replace("/",$"{System.IO.Path.DirectorySeparatorChar}"));
             if (dirname != null)
             {
 

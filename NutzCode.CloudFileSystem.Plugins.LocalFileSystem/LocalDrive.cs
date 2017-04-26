@@ -41,14 +41,14 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             if (Drive == null)
                 return new DirectoryInfo[0];
-            return Directory.GetDirectories(Name+"\\").Select(a=>new DirectoryInfo(a)).ToArray();
+            return Directory.GetDirectories(Name+Path.DirectorySeparatorChar).Select(a=>new DirectoryInfo(a)).ToArray();
         }
 
         public override FileInfo[] GetFiles()
         {
             if (Drive == null)
                 return new FileInfo[0];
-            return Directory.GetFiles(Name+"\\").Select(a => new FileInfo(a)).ToArray();
+            return Directory.GetFiles(Name+Path.DirectorySeparatorChar).Select(a => new FileInfo(a)).ToArray();
         }
 
 
