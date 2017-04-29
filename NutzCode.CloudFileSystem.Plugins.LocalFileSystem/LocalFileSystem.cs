@@ -1,5 +1,6 @@
 ﻿﻿using System;
-using System.Linq;
+ using System.Collections.Generic;
+ using System.Linq;
 using System.Threading.Tasks;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
@@ -96,19 +97,24 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public FileSystemSizes Sizes { get; private set; }
 
 
-        public async Task<FileSystemResult<IDirectory>> GetRoot()
+        public async Task<FileSystemResult<List<IDirectory>>> GetRootsAsync()
         {
             try
             {
                 LocalRoot l = new LocalRoot(FS);
                 await l.PopulateAsync();
-                return new FileSystemResult<IDirectory>(l);
+                return new FileSystemResult<List<IDirectory>>(l.IntDirectories.Cast<IDirectory>().ToList());
             }
             catch (Exception e)
             {
                 // Last ditch effort to catch errors, this needs to always succeed.
-                return new FileSystemResult<IDirectory>(e.Message);
+                return new FileSystemResult<List<IDirectory>>(e.Message);
             }
+        }
+
+        public FileSystemResult<List<IDirectory>> GetRoots()
+        {
+            return Task.Run(async () => await GetRootsAsync()).Result;
         }
     }
 }
