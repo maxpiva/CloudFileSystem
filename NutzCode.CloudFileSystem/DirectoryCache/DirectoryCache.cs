@@ -123,7 +123,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                     if (!originalPath.StartsWith(directory.Name, StringComparison.InvariantCulture)) continue;
 
                     if (originalPath.Equals(directory.Name, StringComparison.InvariantCulture))
-                        return new FileSystemResult<IObject>(fs);
+                        return new FileSystemResult<IObject>(directory);
 
                     lastpart = originalPath.Substring(directory.Name.Length);
                     d = directory;
