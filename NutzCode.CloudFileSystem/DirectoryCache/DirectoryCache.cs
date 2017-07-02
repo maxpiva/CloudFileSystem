@@ -86,12 +86,15 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
 
         public async Task<FileSystemResult<IObject>> ObjectFromPath(IFileSystem fs, string fullpath)
         {
+            // take both and convert
             fullpath = fullpath.Replace("/", $"{System.IO.Path.DirectorySeparatorChar}");
+            fullpath = fullpath.Replace("\\", $"{System.IO.Path.DirectorySeparatorChar}");
             if (fullpath.EndsWith($"{System.IO.Path.DirectorySeparatorChar}"))
                 fullpath = fullpath.Substring(0, fullpath.Length - 1);
             string originalPath = fullpath;
 
-            if (fullpath=="/" || fullpath==string.Empty || fullpath==fs.FullName)
+            if (fullpath.Equals($"{System.IO.Path.DirectorySeparatorChar}") || fullpath == string.Empty ||
+                fullpath.Equals(fs.FullName, StringComparison.InvariantCultureIgnoreCase))
                 return new FileSystemResult<IObject>(fs);
 
             IDirectory d = this[fullpath.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}")];

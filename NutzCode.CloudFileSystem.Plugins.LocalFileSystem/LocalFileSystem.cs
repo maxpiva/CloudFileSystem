@@ -66,12 +66,13 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             try
             {
-                if (path.StartsWith("\\\\"))
+                // Allow either and convert to OS desired later
+                if (path.StartsWith("\\\\") || path.StartsWith("//"))
                 {
-                    int idx = path.IndexOf("\\", 2);
+                    int idx = path.IndexOf(System.IO.Path.DirectorySeparatorChar, 2);
                     if (idx >= 0)
                     {
-                        idx = path.IndexOf("\\", idx + 1);
+                        idx = path.IndexOf(System.IO.Path.DirectorySeparatorChar, idx + 1);
                         if (idx < 0)
                             idx = path.Length;
                     }
@@ -80,9 +81,10 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                     string share = path.Substring(0, idx);
                     if (!Directory.Exists(share))
                         return new FileSystemResult<IObject>("Not found");
-                    if (!FS.Directories.Any(a => a.FullName == share))
+                    if (FS.Directories.All(a => !a.FullName.Equals(share, StringComparison.InvariantCultureIgnoreCase)))
                         FS.AddUncPath(share);
-                    path = path.Replace(share, share.Replace("\\", "*"));
+                    path = path.Replace(share, share.Replace('\\', '*'));
+                    path = path.Replace(share, share.Replace('/', '*'));
                 }
             }
             catch (Exception e)

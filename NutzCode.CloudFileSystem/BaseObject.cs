@@ -193,7 +193,7 @@ namespace NutzCode.CloudFileSystem
 
                 if (!string.IsNullOrEmpty(_parentpath))
                 {
-                    return _parentpath + "\\" + name;
+                    return _parentpath + System.IO.Path.DirectorySeparatorChar + name;
                 }
                 return name;
             }
