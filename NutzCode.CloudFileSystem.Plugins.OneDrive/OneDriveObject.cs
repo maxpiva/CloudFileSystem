@@ -154,9 +154,20 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 
         public async Task<FileSystemResult> RenameAsync(string newname)
         {
+            string oldFullname = this.FullName;
             IDictionary<string, object> dic = this.MetadataExpanded;
             dic["name"] = newname;
-            return await WriteMetadataAsync(this.MetadataExpanded);
+            FileSystemResult r=await WriteMetadataAsync(this.MetadataExpanded);
+            if (r.IsOk)
+            {
+                if (this is OneDriveDirectory)
+                {
+                    FS.Refs.Remove(oldFullname);
+                    FS.Refs[this.FullName] = (OneDriveDirectory)this;
+                }
+
+            }
+            return r;
         }
 
 

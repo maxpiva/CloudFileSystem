@@ -170,6 +170,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
         public async Task<FileSystemResult> RenameAsync(string newname)
         {
+            string oldFullname = this.FullName;
             string url = GooglePatch.FormatRest(Id);
             File f=new File();
             f.Title = newname;
@@ -177,6 +178,11 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             if (ex.IsOk)
             {
                 SetData(ex.Result);
+                if (this is GoogleDriveDirectory)
+                {
+                    FS.Refs.Remove(oldFullname);
+                    FS.Refs[this.FullName] = (GoogleDriveDirectory)this;
+                }
                 return new FileSystemResult();
             }
             return new FileSystemResult<IDirectory>(ex.Error);

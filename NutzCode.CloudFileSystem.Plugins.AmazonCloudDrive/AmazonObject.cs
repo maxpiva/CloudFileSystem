@@ -230,6 +230,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                 }
                 else if (this is AmazonDirectory)
                 {
+
                     AmazonDirectory d=new AmazonDirectory(destination.FullName,this.FS);
                     d.SetData(this.Metadata, this.MetadataExpanded, this.MetadataMime);
                     d.Parent = destination;
@@ -243,14 +244,19 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
         public async Task<FileSystemResult> RenameAsync(string newname)
         {
-
+            string oldFullname = this.FullName;
             string url = AmazonPatch.FormatRest(FS.OAuth.EndPoint.ContentUrl, Id);
             Json.ChangeName name=new Json.ChangeName();
             name.name = newname;
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(name)), "application/json", new HttpMethod("PATCH"));
             if (ex.IsOk)
             {
-                this.SetData(ex.Result);
+                this.SetData(ex.Result);               
+                if (this is AmazonDirectory)
+                {
+                    FS.Refs.Remove(oldFullname);
+                    FS.Refs[this.FullName] = (AmazonDirectory)this;
+                }
                 return new FileSystemResult();
             }
             return new FileSystemResult<IDirectory>(ex.Error);

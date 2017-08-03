@@ -23,34 +23,59 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
 
         private async Task<FileSystemResult<IObject>> GetFromPath(IDirectory d, string path)
         {
-            bool populated = false;
-            if (path.StartsWith($"{System.IO.Path.DirectorySeparatorChar}"))
-                path = path.Substring(1);
-            if (!d.IsPopulated)
+            try
             {
-                FileSystemResult n = await d.PopulateAsync();
-                if (!n.IsOk)
-                    return new FileSystemResult<IObject>(n.Error);
-                populated = true;
-            }
-            if (path.Contains($"{System.IO.Path.DirectorySeparatorChar}"))
-            {
-                int idx = path.IndexOf($"{System.IO.Path.DirectorySeparatorChar}", StringComparison.InvariantCulture);
-                string dirname = path.Substring(0, idx);
-                path = path.Substring(idx + 1);
-                IDirectory fnd = null;
-                while(true)
+                bool populated = false;
+                if (path.StartsWith($"{System.IO.Path.DirectorySeparatorChar}"))
+                    path = path.Substring(1);
+                if (!d.IsPopulated)
                 {
+                    FileSystemResult n = await d.PopulateAsync();
+                    if (!n.IsOk)
+                        return new FileSystemResult<IObject>(n.Error);
+                    populated = true;
+                }
+                if (path.Contains($"{System.IO.Path.DirectorySeparatorChar}"))
+                {
+                    int idx = path.IndexOf($"{System.IO.Path.DirectorySeparatorChar}", StringComparison.InvariantCulture);
+                    string dirname = path.Substring(0, idx);
+                    path = path.Substring(idx + 1);
+                    IDirectory fnd = null;
+                    while (true)
+                    {
+                        foreach (IDirectory dn in d.Directories)
+                        {
+                            if (dn.Name.Equals(dirname.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}"), StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                fnd = dn;
+                                break;
+                            }
+                        }
+                        if (fnd != null)
+                            break;
+                        if (populated)
+                            break;
+                        FileSystemResult n = await d.PopulateAsync();
+                        if (!n.IsOk)
+                            return new FileSystemResult<IObject>(n.Error);
+                        populated = true;
+                    }
+                    if (fnd == null)
+                        return new FileSystemResult<IObject>("File Not Found");
+                    return await GetFromPath(fnd, path);
+                }
+                while (true)
+                {
+                    foreach (IFile dn in d.Files)
+                    {
+                        if (dn.Name.Equals(path.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}"), StringComparison.InvariantCultureIgnoreCase))
+                            return new FileSystemResult<IObject>(dn);
+                    }
                     foreach (IDirectory dn in d.Directories)
                     {
-                        if (dn.Name.Equals(dirname.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}"), StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            fnd = dn;
-                            break;
-                        }
+                        if (dn.Name.Equals(path.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}"), StringComparison.InvariantCultureIgnoreCase))
+                            return new FileSystemResult<IObject>(dn);
                     }
-                    if (fnd != null)
-                        break;
                     if (populated)
                         break;
                     FileSystemResult n = await d.PopulateAsync();
@@ -58,30 +83,14 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                         return new FileSystemResult<IObject>(n.Error);
                     populated = true;
                 }
-                if (fnd == null)
-                    return new FileSystemResult<IObject>("File Not Found");
-                return await GetFromPath(fnd, path);
+                return new FileSystemResult<IObject>("File Not Found");
             }
-            while (true)
+            catch (Exception e)
             {
-                foreach (IFile dn in d.Files)
-                {
-                    if (dn.Name.Equals(path.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}"), StringComparison.InvariantCultureIgnoreCase))
-                        return new FileSystemResult<IObject>(dn);
-                }
-                foreach (IDirectory dn in d.Directories)
-                {
-                    if (dn.Name.Equals(path.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}"), StringComparison.InvariantCultureIgnoreCase))
-                        return new FileSystemResult<IObject>(dn);
-                }
-                if (populated)
-                    break;
-                FileSystemResult n = await d.PopulateAsync();
-                if (!n.IsOk)
-                    return new FileSystemResult<IObject>(n.Error);
-                populated = true;
+                //FS Errors=NOT FOUND
+                return new FileSystemResult<IObject>("File Not Found");
             }
-            return new FileSystemResult<IObject>("File Not Found");
+        
         }
 
         public async Task<FileSystemResult<IObject>> ObjectFromPath(IFileSystem fs, string fullpath)

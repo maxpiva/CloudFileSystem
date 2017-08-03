@@ -88,10 +88,13 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             if (string.Equals(Name, newname))
                 return new FileSystemResult("Unable to rename, names are the same");
+            string oldFullname = this.FullName;
             string newfullname = Path.Combine(Parent.FullName, newname);
             Directory.Move(FullName, newfullname);
+            FS.Refs.Remove(oldFullname);
             DirectoryInfo dinfo = new DirectoryInfo(newfullname);
             _directory = dinfo;
+            FS.Refs[FullName] = this;
             return await Task.FromResult(new FileSystemResult());
         }
 
