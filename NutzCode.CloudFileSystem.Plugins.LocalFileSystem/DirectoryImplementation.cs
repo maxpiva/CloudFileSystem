@@ -77,26 +77,59 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return await Task.FromResult(new FileSystemResult());
         }
 
-        //TODO Mono Implementation
+
+        //Windows Pinvoke
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool GetDiskFreeSpaceEx(string lpDirectoryName, out ulong lpFreeBytesAvailable, out ulong lpTotalNumberOfBytes, out ulong lpTotalNumberOfFreeBytes);
 
+        //MONO Pinvoke
+        [DllImport("libc", SetLastError = true)]
+        public static extern int statvfs(string path, out Statvfs buf);
+        //MONO Struct
+        public struct Statvfs
+        {
+            public ulong f_bsize;      // file system block size
+            public ulong f_frsize;   // fragment size
+            public ulong f_blocks;   // size of fs in f_frsize units
+            public ulong f_bfree;    // # free blocks
+            public ulong f_bavail;   // # free blocks for non-root
+            public ulong f_files;    // # inodes
+            public ulong f_ffree;    // # free inodes
+            public ulong f_favail;   // # free inodes for non-root
+            public ulong f_fsid;     // file system id
+            public ulong f_flag;     // mount flags
+            public ulong f_namemax;  // maximum filename length
+        }
+       
 
 
         public virtual async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
         {
             FileSystemSizes Sizes = new FileSystemSizes();
-            ulong freebytes;
-            ulong totalnumberofbytes;
-            ulong totalnumberoffreebytes;
-            if (GetDiskFreeSpaceEx(FullName, out freebytes, out totalnumberofbytes, out totalnumberoffreebytes))
+            if (Extensions.IsLinux)
             {
-                Sizes.TotalSize = (long)totalnumberoffreebytes;
-                Sizes.AvailableSize = (long) freebytes;
+                Statvfs vfs;
+                statvfs(FullName.Replace("\\\\", "/"), out vfs);
+                Sizes.TotalSize = (long) (vfs.f_blocks * vfs.f_frsize);
+                Sizes.AvailableSize = (long) (vfs.f_bavail * vfs.f_frsize);
                 Sizes.UsedSize = Sizes.TotalSize - Sizes.AvailableSize;
+            }
+            else
+            {
+                ulong freebytes;
+                ulong totalnumberofbytes;
+                ulong totalnumberoffreebytes;
+                if (GetDiskFreeSpaceEx(FullName, out freebytes, out totalnumberofbytes, out totalnumberoffreebytes))
+                {
+                    Sizes.TotalSize = (long)totalnumberoffreebytes;
+                    Sizes.AvailableSize = (long)freebytes;
+                    Sizes.UsedSize = Sizes.TotalSize - Sizes.AvailableSize;
+                }
             }
             return await Task.FromResult(new FileSystemResult<FileSystemSizes>(Sizes));
         }
+
+
     }
 }
