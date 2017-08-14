@@ -7,7 +7,6 @@ namespace NutzCode.CloudFileSystem
     {
         string GetUserAuthorization();
         Task<FileSystemResult<IObject>> ResolveAsync(string path);
-        Task<FileSystemResult<FileSystemSizes>> QuotaAsync();
         SupportedFlags Supports { get; }
     }
 }

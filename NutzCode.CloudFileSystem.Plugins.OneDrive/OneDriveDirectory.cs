@@ -103,7 +103,10 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             return new FileSystemResult();
         }
 
-
+        public Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        {
+            return FS.QuotaAsync();
+        }
 
 
         public OneDriveDirectory(string parentpath, OneDriveFileSystem fs) : base(parentpath, fs, OneDriveMappings.Maps)

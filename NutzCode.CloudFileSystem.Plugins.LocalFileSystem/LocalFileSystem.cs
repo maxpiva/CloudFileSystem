@@ -42,17 +42,22 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return new FileSystemResult<IFileSystem>(l);
         }
 
-        public async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        //TODO locking?
+        public override async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
         {
             Sizes = new FileSystemSizes();
             // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
-            foreach (LocalDrive ld in IntDirectories)
+            foreach (DirectoryImplementation ld in IntDirectories)
             {
                 try
                 {
-                    Sizes.AvailableSize += ld.Drive.AvailableFreeSpace;
-                    Sizes.UsedSize += ld.Drive.TotalSize - ld.Drive.AvailableFreeSpace;
-                    Sizes.TotalSize += ld.Drive.TotalSize;
+                    FileSystemResult<FileSystemSizes> z = await ld.QuotaAsync();
+                    if (z.IsOk)
+                    {
+                        Sizes.AvailableSize += z.Result.AvailableSize;
+                        Sizes.UsedSize += z.Result.UsedSize;
+                        Sizes.TotalSize += z.Result.TotalSize;
+                    }
                 }
                 catch (Exception) //Cdrom and others
                 {
@@ -99,24 +104,5 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public FileSystemSizes Sizes { get; private set; }
 
 
-        public async Task<FileSystemResult<List<IDirectory>>> GetRootsAsync()
-        {
-            try
-            {
-                LocalRoot l = new LocalRoot(FS);
-                await l.PopulateAsync();
-                return new FileSystemResult<List<IDirectory>>(l.IntDirectories.Cast<IDirectory>().ToList());
-            }
-            catch (Exception e)
-            {
-                // Last ditch effort to catch errors, this needs to always succeed.
-                return new FileSystemResult<List<IDirectory>>(e.Message);
-            }
-        }
-
-        public FileSystemResult<List<IDirectory>> GetRoots()
-        {
-            return Task.Run(async () => await GetRootsAsync()).Result;
-        }
     }
 }

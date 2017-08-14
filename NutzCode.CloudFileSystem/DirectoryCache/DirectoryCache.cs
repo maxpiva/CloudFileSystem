@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web.StreamProvider;
 
@@ -110,7 +109,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
             string lastpart = string.Empty;
             if (d != null)
                 return new FileSystemResult<IObject>(d);
-            while (fullpath != "")
+            while (fullpath != string.Empty)
             {
                 int idx = fullpath.LastIndexOf($"{System.IO.Path.DirectorySeparatorChar}", StringComparison.InvariantCulture);
                 if (idx < 0)
@@ -129,7 +128,8 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
             }
             if (d == null)
                 d = fs;
-            if (Type.GetType("Mono.Runtime") != null)
+            if (Extensions.IsLinux)
+            {
                 foreach (IDirectory directory in fs.Directories)
                 {
                     if (!originalPath.StartsWith(directory.Name, StringComparison.InvariantCulture)) continue;
@@ -140,7 +140,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                     lastpart = originalPath.Substring(directory.Name.Length);
                     d = directory;
                 }
-
+            }
             return await GetFromPath(d, lastpart);
         }
     }

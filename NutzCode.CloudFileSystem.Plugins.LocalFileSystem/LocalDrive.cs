@@ -82,5 +82,13 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             return await Task.FromResult(new FileSystemResult("Unable to delete a drive"));
         }
+        public override async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        {
+            FileSystemSizes Sizes = new FileSystemSizes();
+            Sizes.AvailableSize += Drive.AvailableFreeSpace;
+            Sizes.UsedSize += Drive.TotalSize - Drive.AvailableFreeSpace;
+            Sizes.TotalSize += Drive.TotalSize;
+            return await Task.FromResult(new FileSystemResult<FileSystemSizes>(Sizes));
+        }
     }
 }

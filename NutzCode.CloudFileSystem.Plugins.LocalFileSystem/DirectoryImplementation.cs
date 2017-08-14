@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Path = Pri.LongPath.Path;
@@ -15,7 +16,7 @@ using FileAttributes = System.IO.FileAttributes;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
-    public abstract class DirectoryImplementation : LocalObject, IDirectory, IOwnDirectory<LocalFile,DirectoryImplementation>
+    public abstract class  DirectoryImplementation : LocalObject, IDirectory, IOwnDirectory<LocalFile,DirectoryImplementation>
     {
         public List<DirectoryImplementation> IntDirectories { get; set; }=new List<DirectoryImplementation>();
         public List<LocalFile> IntFiles { get; set; }=new List<LocalFile>();
@@ -76,6 +77,26 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return await Task.FromResult(new FileSystemResult());
         }
 
+        //TODO Mono Implementation
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetDiskFreeSpaceEx(string lpDirectoryName, out ulong lpFreeBytesAvailable, out ulong lpTotalNumberOfBytes, out ulong lpTotalNumberOfFreeBytes);
 
+
+
+        public virtual async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        {
+            FileSystemSizes Sizes = new FileSystemSizes();
+            ulong freebytes;
+            ulong totalnumberofbytes;
+            ulong totalnumberoffreebytes;
+            if (GetDiskFreeSpaceEx(FullName, out freebytes, out totalnumberofbytes, out totalnumberoffreebytes))
+            {
+                Sizes.TotalSize = (long)totalnumberoffreebytes;
+                Sizes.AvailableSize = (long) freebytes;
+                Sizes.UsedSize = Sizes.TotalSize - Sizes.AvailableSize;
+            }
+            return await Task.FromResult(new FileSystemResult<FileSystemSizes>(Sizes));
+        }
     }
 }

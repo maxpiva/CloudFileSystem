@@ -105,7 +105,10 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new FileSystemResult();
         }
 
-
+        public Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        {
+            return FS.QuotaAsync();
+        }
 
 
         public GoogleDriveDirectory(string parentpath, GoogleDriveFileSystem fs) : base(parentpath, fs, GoogleDriveMappings.Maps)

@@ -14,7 +14,7 @@ namespace NutzCode.CloudFileSystem
         {
             return Task.Run(async()=>await plugin.InitAsync(filesystemname,oAuthProvider,settings,userauthorization)).Result;
         }
-        public static FileSystemResult<FileSystemSizes> Quota(this IFileSystem filesys)
+        public static FileSystemResult<FileSystemSizes> Quota(this IDirectory filesys)
         {
             return Task.Run(async () => await filesys.QuotaAsync()).Result;
         }

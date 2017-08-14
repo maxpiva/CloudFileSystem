@@ -15,6 +15,7 @@ namespace NutzCode.CloudFileSystem
         bool IsPopulated { get; }
         bool IsRoot { get; }
         Task<FileSystemResult> PopulateAsync();
+        Task<FileSystemResult<FileSystemSizes>> QuotaAsync();
 
     }
 }

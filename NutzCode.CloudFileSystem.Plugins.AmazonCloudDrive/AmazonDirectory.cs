@@ -101,6 +101,11 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             }           
         }
 
+        public Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        {
+            return FS.QuotaAsync();
+        }
+
 
         public AmazonDirectory(string parentpath, AmazonFileSystem fs) : base(parentpath, fs, AmazonMappings.Maps)
         {
