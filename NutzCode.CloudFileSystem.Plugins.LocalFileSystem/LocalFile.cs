@@ -1,6 +1,7 @@
 ﻿﻿using System;
 using System.Collections.Generic;
-using System.Threading;
+ using System.IO;
+ using System.Threading;
 using System.Threading.Tasks;
 using Path = Pri.LongPath.Path;
 using Directory = Pri.LongPath.Directory;
@@ -178,6 +179,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             }
             catch (Exception e)
             {
+                if (e is FileNotFoundException) return await Task.FromResult(new FileSystemResult());
                 return new FileSystemResult(e.Message);
             }
         }
