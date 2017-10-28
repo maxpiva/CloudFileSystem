@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NutzCode.CloudFileSystem.OAuth2;
-using NutzCode.CloudFileSystem.Plugins.OneDrive.Models;
 
 namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 {
@@ -22,16 +21,16 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 
         public SupportedFlags Supports => SupportedFlags.Assets | SupportedFlags.SHA1 | SupportedFlags.Properties;
 
-        private OneDriveFileSystem(IOAuthProvider provider) : base(null)
+        private OneDriveFileSystem() : base(null)
         {
             FS = this;
-            OAuth = new OAuth(provider);
+            OAuth = new OAuth(OneDriveOAuth,OneDriveOAuth,null);
         }
 
         internal async Task<FileSystemResult> CheckExpirations()
         {
             FileSystemResult r = await OAuth.MayRefreshToken();
-            if (!r.IsOk)
+            if (r.Status!=Status.Ok)
                 return r;
             r = await OAuth.MayRefreshEndPoint();
             return r;
@@ -44,52 +43,64 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             return JsonConvert.SerializeObject(OAuth.Token);
         }
 
-        public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
+        public Task<IObject> ResolveAsync(string path)
         {
-            return await Refs.ObjectFromPath(this, path);
+            return Refs.ObjectFromPath(this, path);
         }
 
         public FileSystemSizes Sizes { get; private set; }
 
-        public static async Task<FileSystemResult<OneDriveFileSystem>> Create(string fname, IOAuthProvider provider, Dictionary<string, object> settings, string pluginanme, string userauthorization = null)
+
+        public static async Task<IFileSystem> Create(string fname, BaseUserSettings settings, string pluginanme, string userauthorization)
         {
-            OneDriveFileSystem am = new OneDriveFileSystem(provider);
-            am.FS = am;
-            am.OAuth.OAuthUrl = OneDriveOAuth;
-            am.OAuth.EndPointUrl = null;
-            am.OAuth.OAuthLoginUrl = OneDriveOAuthLogin;
-            am.OAuth.DefaultScopes = OneDriveScopes;
-            bool userauth = !string.IsNullOrEmpty(userauthorization);
-            if (userauth)
+            OneDriveFileSystem am = new OneDriveFileSystem();
+            am.FsName = fname;
+            if (string.IsNullOrEmpty(userauthorization) || (!(settings is LocalUserSettingWithCode)))
+            {
+                am.Status = Status.LoginRequired;
+                am.Error = "Tried to login with an empty usersettings";
+                return am;
+            }
+            if (!string.IsNullOrEmpty(userauthorization))
                 am.DeserializeAuth(userauthorization);
-            FileSystemResult r = await am.OAuth.Login(settings, pluginanme, userauth,true);
-            if (!r.IsOk)
-                return new FileSystemResult<OneDriveFileSystem>(r.Error);
+            FileSystemResult r = await am.OAuth.InitAsync(settings);
+            if (r.Status != Status.Ok)
+            {
+                r.CopyErrorTo(am);
+                return am;
+            }
             r = await am.OAuth.MayRefreshToken();
-            if (!r.IsOk)
-                return new FileSystemResult<OneDriveFileSystem>(r.Error);
+            if (r.Status != Status.Ok)
+            {
+                r.CopyErrorTo(am);
+                return am;
+            }
             r = await am.QuotaAsync();
-            if (!r.IsOk)
-                return new FileSystemResult<OneDriveFileSystem>(r.Error);                
+            if (r.Status != Status.Ok)
+            {
+                r.CopyErrorTo(am);
+                return am;
+            }
             r = await am.PopulateAsync();
-            if (!r.IsOk)
-                return new FileSystemResult<OneDriveFileSystem>(r.Error);
-            return new FileSystemResult<OneDriveFileSystem>(am);
+            if (r.Status != Status.Ok)
+                r.CopyErrorTo(am);
+            return am;
         }
 
-        public async Task<FileSystemResult<FileSystemSizes>> QuotaAsync() // In fact we read the drive
+
+        public override async Task<FileSystemSizes> QuotaAsync() // In fact we read the drive
         {
             string url = OneDriveRoot.FormatRest(OneDriveUrl);
             FileSystemResult<dynamic> cl = await FS.OAuth.CreateMetadataStream<dynamic>(url);
-            if (!cl.IsOk)
-                return new FileSystemResult<FileSystemSizes>(cl.Error);
+            if (cl.Status!=Status.Ok)
+                return new FileSystemSizes { Status = cl.Status, Error=cl.Error};
             Sizes = new FileSystemSizes
             {
                 AvailableSize = cl.Result.quota.remaining ?? 0,
                 TotalSize = cl.Result.quota.total ?? 0,
                 UsedSize = cl.Result.quota.used ?? 0
             };
-            return new FileSystemResult<FileSystemSizes>(Sizes);
+            return Sizes;
         }
 
 

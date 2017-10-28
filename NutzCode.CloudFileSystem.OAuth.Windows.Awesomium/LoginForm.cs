@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Windows.Forms;
 using Awesomium.Core;
@@ -36,7 +38,7 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.Awesomium
             webView.CertificateError += WebView_CertificateError;
             webView.LoadingFrameFailed += WebView_LoadingFrameFailed;
             string responsetype = "code";
-            string url = string.Format(AuthUrl, HttpUtility.UrlEncode(clientid),HttpUtility.UrlEncode(string.Join(" ",scopes)),HttpUtility.UrlEncode(responsetype),HttpUtility.UrlEncode(redirect),authurl);
+            string url = string.Format(AuthUrl, WebUtility.UrlEncode(clientid), WebUtility.UrlEncode(string.Join(" ",scopes)), WebUtility.UrlEncode(responsetype), WebUtility.UrlEncode(redirect),authurl);
             webView.Source=new Uri(url);
         }
 
@@ -70,7 +72,7 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.Awesomium
                 string n = url.Substring(a);
                 if (n.EndsWith("/"))
                     n = n.Substring(0, n.Length - 1);
-                NameValueCollection col = HttpUtility.ParseQueryString(n);
+                NameValueCollection col = ParseQueryString(n);
                 foreach (string s in col.Keys)
                 {
                     switch (s)
@@ -88,7 +90,32 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.Awesomium
             }
         }
 
+        public static NameValueCollection ParseQueryString(string s)
+        {
+            NameValueCollection nvc = new NameValueCollection();
 
+            // remove anything other than query string from url
+            if (s.Contains("?"))
+            {
+                s = s.Substring(s.IndexOf('?') + 1);
+            }
+
+            foreach (string vp in Regex.Split(s, "&"))
+            {
+                string[] singlePair = Regex.Split(vp, "=");
+                if (singlePair.Length == 2)
+                {
+                    nvc.Add(singlePair[0], singlePair[1]);
+                }
+                else
+                {
+                    // only one key with no value specified in query string
+                    nvc.Add(singlePair[0], string.Empty);
+                }
+            }
+
+            return nvc;
+        }
         private void WebView_AddressChanged(object sender, UrlEventArgs e)
         {
             CheckUrl(e.Url.ToString());

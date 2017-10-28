@@ -1,14 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
+﻿using System.Collections.Generic;
+using System.Composition;
+using System.Composition.Hosting;
+#if PRILONGPATH
+using Pri.LongPath;
+using SearchOption = System.IO.SearchOption;
+#else
+using System.IO;
+#endif
+using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using NutzCode.Libraries.Web.StreamProvider;
 
 namespace NutzCode.CloudFileSystem
 {
-
-
     public class CloudFileSystemPluginFactory
     {
         private static CloudFileSystemPluginFactory _instance;
@@ -20,7 +25,7 @@ namespace NutzCode.CloudFileSystem
         public const int MaxWaitBlockDistance = 2;
         public const int DirectoryTreeCacheSize = 1024;
 
-        [ImportMany(typeof(ICloudPlugin))]
+        [ImportMany]
         public IEnumerable<ICloudPlugin> List { get; set; }
 
         public WebDataProvider WebDataProvider = new WebDataProvider(MaximumNumberOfInactiveStreams, BlockSize);
@@ -28,17 +33,18 @@ namespace NutzCode.CloudFileSystem
         public CloudFileSystemPluginFactory()
         {
             Assembly assembly = Assembly.GetEntryAssembly();
-            string codebase = assembly.CodeBase;
-            UriBuilder uri = new UriBuilder(codebase);
-            string dirname = Pri.LongPath.Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path).Replace("/",$"{System.IO.Path.DirectorySeparatorChar}"));
+            string executableLocation = assembly.Location;
+            string dirname = Path.GetDirectoryName(executableLocation);
             if (dirname != null)
             {
-
-                AggregateCatalog catalog = new AggregateCatalog();
-                catalog.Catalogs.Add(new AssemblyCatalog(assembly));
-                catalog.Catalogs.Add(new DirectoryCatalog(dirname,"NutzCode.CloudFileSystem.Plugins.*.dll"));
-                var container = new CompositionContainer(catalog);
-                container.ComposeParts(this);
+                List<Assembly> assemblies = Directory.GetFiles(dirname, "*.dll", SearchOption.AllDirectories)
+                    .Select(AssemblyLoadContext.Default.LoadFromAssemblyPath).ToList();
+                assemblies.Add(assembly);
+                ContainerConfiguration configuration = new ContainerConfiguration().WithAssemblies(assemblies);
+                using (CompositionHost container = configuration.CreateContainer())
+                {
+                    List = container.GetExports<ICloudPlugin>();
+                }
             }
         }
     }

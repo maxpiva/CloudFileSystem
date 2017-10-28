@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web;
-using Path = Pri.LongPath.Path;
+#if PRILONGPATH
+using Pri.LongPath;
+#else
+using System.IO;
+#endif
 using Stream = System.IO.Stream;
 
 namespace NutzCode.CloudFileSystem.Plugins.OneDrive

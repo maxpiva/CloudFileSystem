@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
-using FileInfo = Pri.LongPath.FileInfo;
-using Stream = System.IO.Stream;
+#if PRILONGPATH
+using Pri.LongPath;
+using DirectoryInfo=System.IO.DirectoryInfo;
+using FileInfo=System.IO.FileInfo;
+#else
+using System.IO;
+#endif
 using FileAttributes = System.IO.FileAttributes;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
@@ -65,11 +64,11 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             DirectoryImplementation to = destination as DirectoryImplementation;
             if (to == null)
-                return new FileSystemResult("Destination should be a Local Directory");
+                return new FileSystemResult(Status.ArgumentError, "Destination should be a Local Directory");
             if (to is LocalRoot)
-                return new FileSystemResult("Root cannot be destination");
+                return new FileSystemResult(Status.ArgumentError, "Root cannot be destination");
             string destname = Path.Combine(to.FullName, Name);
-            string oldFullname = this.FullName;
+            string oldFullname = FullName;
             Directory.Move(FullName, destname);
             FS.Refs.Remove(oldFullname);
             ((DirectoryImplementation)Parent).IntDirectories.Remove(this);
@@ -81,14 +80,14 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         }
         public override async Task<FileSystemResult> CopyAsync(IDirectory destination)
         {
-            return await Task.FromResult(new FileSystemResult("Directory copy is not supported"));
+            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Directory copy is not supported"));
         }
 
         public override async Task<FileSystemResult> RenameAsync(string newname)
         {
             if (string.Equals(Name, newname))
-                return new FileSystemResult("Unable to rename, names are the same");
-            string oldFullname = this.FullName;
+                return new FileSystemResult(Status.ArgumentError, "Unable to rename, names are the same");
+            string oldFullname = FullName;
             string newfullname = Path.Combine(Parent.FullName, newname);
             Directory.Move(FullName, newfullname);
             FS.Refs.Remove(oldFullname);

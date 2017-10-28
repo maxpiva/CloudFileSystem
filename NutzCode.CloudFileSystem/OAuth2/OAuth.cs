@@ -17,29 +17,55 @@ namespace NutzCode.CloudFileSystem.OAuth2
     public class OAuth 
     {
         internal Token Token;
-        internal string ClientId;
-        internal string ClientSecret;
-        internal string UserAgent;
-        internal string RedirectUri;
-        private IOAuthProvider _provider;
-     
-        
+        internal BaseUserSettings UserSettings;
+        internal EndPoint EndPoint;
+        internal string TokenUri;
+        internal string OAuthUri;
+        internal string EndPointUri;
 
-        internal string OAuthLoginUrl;
-        internal string OAuthUrl;
-        internal string EndPointUrl;
-        internal List<string> DefaultScopes;
-        internal string DefaultUserAgent = "CloudFileSystem/1.0";
-        internal string DefaultRedirectUri = "https://localhost";
-        internal List<string> Scopes;
-
-        public OAuth(IOAuthProvider provider)
+        public OAuth(string tokenuri, string oauthuri, string endpointuri)
         {
-            _provider = provider;
+            TokenUri = tokenuri;
+            OAuthUri = oauthuri;
+            EndPointUri = endpointuri;
         }
 
-        internal EndPoint EndPoint;
+        public OAuth(string tokenuri, string oauthuri)
+        {
+            TokenUri = tokenuri;
+            OAuthUri = oauthuri;
+            EndPointUri = null;
+        }
 
+
+        internal string DefaultUserAgent = "CloudFileSystem/1.0";
+
+        internal virtual async Task<FileSystemResult> InitAsync(BaseUserSettings settings)
+        {
+            if (string.IsNullOrEmpty(settings.UserAgent))
+                settings.UserAgent = DefaultUserAgent;
+            UserSettings = settings;
+            LocalUserSettingWithCode userwithcode=settings as LocalUserSettingWithCode;
+            if (userwithcode != null)
+            {
+                FileSystemResult fs = await GetTokenAsync(userwithcode);
+                if (fs.Status != Status.Ok)
+                    return fs;
+            }
+            FileSystemResult r = await MayRefreshToken();
+            if (r.Status != Status.Ok)
+                return r;
+            if (EndPointUri != null)
+            {
+                r = await MayRefreshEndPoint();
+                if (r.Status != Status.Ok)
+                    return r;
+            }
+            return new FileSystemResult();
+        }
+
+
+        /*
 
         public const string ClientIdString = "ClientId";
         public const string ClientSecretString = "ClientSecret";
@@ -58,63 +84,87 @@ namespace NutzCode.CloudFileSystem.OAuth2
                     new AuthorizationRequirement {IsRequired = false, Name = ScopesString, Type = typeof (List<string>)},
                     new AuthorizationRequirement {IsRequired = false, Name = UserAgentString, Type = typeof (string)},
                 };
+                */
+        /*
+                internal virtual async Task<FileSystemResult> Login(Dictionary<string, object> authorization, string name, bool isUserAuth, bool scopescommaseparated)
+                {
+
+                    if (!authorization.ContainsKey(ClientIdString) || !(authorization[ClientIdString] is string))
+                        return new FileSystemResult("Unable to find "+name+" '" + ClientIdString + "' in settings");
+                    ClientId = (string) authorization[ClientIdString];
+                    if (!authorization.ContainsKey(ClientSecretString) || !(authorization[ClientSecretString] is string))
+                        return new FileSystemResult("Unable to find " + name + " '" + ClientSecretString + "' in settings");
+                    ClientSecret = (string) authorization[ClientSecretString];
+                    if (!authorization.ContainsKey(RedirectUriString) || !(authorization[RedirectUriString] is string))
+                        RedirectUri = DefaultRedirectUri;
+                    else
+                        RedirectUri = (string) authorization[RedirectUriString];
+                    if (!authorization.ContainsKey(ScopesString) || !(authorization[ScopesString] is List<string>))
+                        Scopes = DefaultScopes;
+                    else
+                        Scopes = (List<string>) authorization[ScopesString];
+                    if (!authorization.ContainsKey(UserAgentString) || !(authorization[UserAgentString] is string))
+                        UserAgent = "CloudFileSystem/1.0";
+                    else
+                        UserAgent = (string) authorization[UserAgentString];
+                    if (isUserAuth)
+                    {
+                        FileSystemResult r = await FillFromUserAuth();
+                        return r;
+                    }
+                    if (_provider==null)
+                        return new FileSystemResult<IFileSystem>("Cannot find valid Authorization Provider for " + name);
+                    AuthRequest request = new AuthRequest { Name = name, LoginUrl = OAuthLoginUrl, ClientId = ClientId, Scopes = Scopes, RedirectUri = RedirectUri , ScopesCommaSeparated = scopescommaseparated};
+                    AuthResult result = await _provider.Login(request);
+
+                    if (result.HasError)
+                        return new FileSystemResult<IFileSystem>(result.ErrorString);
+                    return await FillFromLogin(result.Code);
+                }
+                */
 
 
-        internal virtual async Task<FileSystemResult> Login(Dictionary<string, object> authorization, string name, bool isUserAuth, bool scopescommaseparated)
-        {
-
-            if (!authorization.ContainsKey(ClientIdString) || !(authorization[ClientIdString] is string))
-                return new FileSystemResult("Unable to find "+name+" '" + ClientIdString + "' in settings");
-            ClientId = (string) authorization[ClientIdString];
-            if (!authorization.ContainsKey(ClientSecretString) || !(authorization[ClientSecretString] is string))
-                return new FileSystemResult("Unable to find " + name + " '" + ClientSecretString + "' in settings");
-            ClientSecret = (string) authorization[ClientSecretString];
-            if (!authorization.ContainsKey(RedirectUriString) || !(authorization[RedirectUriString] is string))
-                RedirectUri = DefaultRedirectUri;
-            else
-                RedirectUri = (string) authorization[RedirectUriString];
-            if (!authorization.ContainsKey(ScopesString) || !(authorization[ScopesString] is List<string>))
-                Scopes = DefaultScopes;
-            else
-                Scopes = (List<string>) authorization[ScopesString];
-            if (!authorization.ContainsKey(UserAgentString) || !(authorization[UserAgentString] is string))
-                UserAgent = "CloudFileSystem/1.0";
-            else
-                UserAgent = (string) authorization[UserAgentString];
-            if (isUserAuth)
-            {
-                FileSystemResult r = await FillFromUserAuth();
-                return r;
-            }
-            if (_provider==null)
-                return new FileSystemResult<IFileSystem>("Cannot find valid Authorization Provider for " + name);
-            AuthRequest request = new AuthRequest { Name = name, LoginUrl = OAuthLoginUrl, ClientId = ClientId, Scopes = Scopes, RedirectUri = RedirectUri , ScopesCommaSeparated = scopescommaseparated};
-            AuthResult result = await _provider.Login(request);
-
-            if (result.HasError)
-                return new FileSystemResult<IFileSystem>(result.ErrorString);
-            return await FillFromLogin(result.Code);
-        }
 
         internal async Task<FileSystemResult> MayRefreshToken(bool force = false)
         {
             if (Token == null)
-                return new FileSystemResult("Authorization Token not found");
+                return new FileSystemResult(Status.LoginRequired, "Authorization Token not found");
             if (Token.ExpirationDate.AddMinutes(3) < DateTime.Now || force)
             {
-                string refreshToken = Token.RefreshToken;
-                Dictionary<string, string> postdata = new Dictionary<string, string>();
-                postdata.Add("grant_type", "refresh_token");
-                postdata.Add("refresh_token", Token.RefreshToken);
-                postdata.Add("client_id", ClientId);
-                postdata.Add("client_secret", ClientSecret);
-                Token = null;
-                FileSystemResult<Token> fs = await CreateMetadataStream<Token>(OAuthUrl, Encoding.UTF8.GetBytes(postdata.PostFromDictionary()));
-                if (!fs.IsOk)
-                    return new FileSystemResult(fs.Error);
-                Token = fs.Result;
-                if (string.IsNullOrEmpty(Token.RefreshToken))
-                    Token.RefreshToken = refreshToken;
+                ProxyUserSettings prox=UserSettings as ProxyUserSettings;
+                if (prox != null)
+                {
+                    //Convert To Base64Url
+                    string refreshToken = Token.RefreshToken.Replace("+", "-").Replace("/", "_");
+                    string uri = prox.RefreshTokenProxyUri;
+                    if (uri.EndsWith("/"))
+                        uri += refreshToken;
+                    else
+                        uri += "/" + refreshToken;
+                    Token = null;
+                    FileSystemResult<Token> fs = await CreateMetadataStream<Token>(uri);
+                    if (fs.Status != Status.Ok)
+                        return new FileSystemResult(Status.LoginRequired, fs.Error);
+                    Token = fs.Result;
+                    if (string.IsNullOrEmpty(Token.RefreshToken))
+                        Token.RefreshToken = refreshToken;
+                }
+                {
+                    LocalUserSettings loc=UserSettings as LocalUserSettings;
+                    string refreshToken = Token.RefreshToken;
+                    Dictionary<string, string> postdata = new Dictionary<string, string>();
+                    postdata.Add("grant_type", "refresh_token");
+                    postdata.Add("refresh_token", Token.RefreshToken);
+                    postdata.Add("client_id", loc.ClientId);
+                    postdata.Add("client_secret", loc.ClientSecret);
+                    Token = null;
+                    FileSystemResult<Token> fs = await CreateMetadataStream<Token>(OAuthUri, Encoding.UTF8.GetBytes(postdata.PostFromDictionary()));
+                    if (fs.Status != Status.Ok)
+                        return new FileSystemResult(Status.LoginRequired, fs.Error);
+                    Token = fs.Result;
+                    if (string.IsNullOrEmpty(Token.RefreshToken))
+                        Token.RefreshToken = refreshToken;
+                }
             }
             return new FileSystemResult();
         }
@@ -123,9 +173,9 @@ namespace NutzCode.CloudFileSystem.OAuth2
             
             if (EndPoint == null || EndPoint.ExpirationDate < DateTime.Now)
             {
-                FileSystemResult<EndPoint> fs = await CreateMetadataStream<EndPoint>(EndPointUrl);
-                if (!fs.IsOk)
-                    return new FileSystemResult(fs.Error);
+                FileSystemResult<EndPoint> fs = await CreateMetadataStream<EndPoint>(EndPointUri);
+                if (fs.Status != Status.Ok)
+                    return fs;
                 EndPoint = fs.Result;
                 if (EndPoint.ContentUrl.EndsWith("/"))
                     EndPoint.ContentUrl = EndPoint.ContentUrl.Substring(0, EndPoint.ContentUrl.Length - 1);
@@ -151,8 +201,8 @@ namespace NutzCode.CloudFileSystem.OAuth2
         internal SeekableWebParameters CreateSeekableWebParameters(IFile file, string url, string key)
         {
             SeekableWebParameters pars = new SeekableWebParameters(new Uri(url),key,file.Size);
-            if (UserAgent != null)
-                pars.UserAgent = UserAgent;
+            if (UserSettings.UserAgent != null)
+                pars.UserAgent = UserSettings.UserAgent;
             NameValueCollection nm = new NameValueCollection();
             nm.Add("Authorization", "Bearer " + Token.AccessToken);
             pars.Headers = nm;
@@ -177,8 +227,8 @@ namespace NutzCode.CloudFileSystem.OAuth2
                     if (method==null || method==HttpMethod.Get)
                         pars.Method = HttpMethod.Post;
                 }
-                if (UserAgent != null)
-                    pars.UserAgent = UserAgent;
+                if (UserSettings.UserAgent != null)
+                    pars.UserAgent = UserSettings.UserAgent;
 
                 if (Token != null)
                 {
@@ -198,7 +248,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
                     }
                     if (w.StatusCode != HttpStatusCode.Unauthorized || retry)
                     {
-                        return new FileSystemResult<T>("'url' responds with Http code: " + w.StatusCode);
+                        return new FileSystemResult<T>(Status.HttpError, "'url' responds with Http code: " + w.StatusCode);
                     }
                     retry = true;
                     await MayRefreshToken(true);
@@ -206,33 +256,35 @@ namespace NutzCode.CloudFileSystem.OAuth2
             } while (true);
         }
 
-        private async Task<FileSystemResult> GetToken(string code)
+        private async Task<FileSystemResult> GetTokenAsync(LocalUserSettingWithCode sets)
         {
             Dictionary<string, string> postdata = new Dictionary<string, string>();
             postdata.Add("grant_type", "authorization_code");
-            postdata.Add("code", code);
-            postdata.Add("client_id", ClientId);
-            postdata.Add("client_secret", ClientSecret);
-            postdata.Add("redirect_uri", RedirectUri);
-            FileSystemResult<Token> fs = await CreateMetadataStream<Token>(OAuthUrl, Encoding.UTF8.GetBytes(postdata.PostFromDictionary()));
-            if (!fs.IsOk)
-                return new FileSystemResult(fs.Error);
+            postdata.Add("code", sets.Code);
+            postdata.Add("client_id",sets.ClientId);
+            postdata.Add("client_secret", sets.ClientSecret);
+            postdata.Add("redirect_uri", sets.OriginalRedirectUri);
+            FileSystemResult<Token> fs = await CreateMetadataStream<Token>(TokenUri, Encoding.UTF8.GetBytes(postdata.PostFromDictionary()));
+            if (fs.Status!=Status.Ok)
+                return new FileSystemResult(Status.LoginRequired, fs.Error);
             Token = fs.Result;
             return new FileSystemResult();
         }
-        private async Task<FileSystemResult> FillFromLogin(string code)
+        /*
+        public async Task<FileSystemResult> GetTokenAndEndPoints(UserAuthRequest req)
         {
-            FileSystemResult r = await GetToken(code);
-            if (!r.IsOk)
+            FileSystemResult r = await GetToken(req);
+            if (r.Status!=Status.Ok)
                 return r;
             if (EndPointUrl != null)
             {
                 r = await MayRefreshEndPoint();
-                if (!r.IsOk)
+                if (r.Status != Status.Ok)
                     return r;
             }
             return new FileSystemResult();
-        }
+        }*/
+        /*
         private async Task<FileSystemResult> FillFromUserAuth() 
         {
 
@@ -247,6 +299,6 @@ namespace NutzCode.CloudFileSystem.OAuth2
             }
             return new FileSystemResult();
         }
-
+        */
     }
 }

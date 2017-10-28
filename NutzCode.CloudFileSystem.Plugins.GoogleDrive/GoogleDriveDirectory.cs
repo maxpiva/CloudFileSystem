@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-
 using Stream = System.IO.Stream;
-
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -35,12 +33,12 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
 
 
-        public Task<FileSystemResult<IFile>> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<IFile> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             throw new NotImplementedException();
         }
 
-        public async Task<FileSystemResult<IDirectory>> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
+        public async Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
         {
 
             if (properties == null)
@@ -58,26 +56,26 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             if (properties.Any(a => a.Key.Equals("CreatedDate", StringComparison.InvariantCultureIgnoreCase)))
                 f.CreatedDate = (DateTime)properties.First(a => a.Key.Equals("CreatedDate", StringComparison.InvariantCultureIgnoreCase)).Value;
             FileSystemResult<ExpandoObject> ex = await FS.OAuth.CreateMetadataStream<ExpandoObject>(GoogleCreateDir, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(f)), "application/json");
-            if (ex.IsOk)
+            if (ex.Status==Status.Ok)
             {
                 GoogleDriveDirectory dir = new GoogleDriveDirectory(FullName, FS) { Parent = this };
                 dir.SetData(JsonConvert.SerializeObject(ex.Result));
                 FS.Refs[dir.FullName]=dir;
                 IntDirectories.Add(dir);
-                return new FileSystemResult<IDirectory>(dir);
+                return dir;
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new GoogleDriveDirectory(FullName, FS) { Parent = this, Status = ex.Status, Error=ex.Error };
         }
 
         public async Task<FileSystemResult> PopulateAsync()
         {
             FileSystemResult r = await FS.OAuth.MayRefreshToken();
-            if (!r.IsOk)
+            if (r.Status!=Status.Ok)
                 return r;
             string url = GoogleList.FormatRest(Id);
             FileSystemResult<dynamic> fr = await List(url);
-            if (!fr.IsOk)
-                return new FileSystemResult(fr.Error);
+            if (fr.Status != Status.Ok)
+                return new FileSystemResult(fr.Status, fr.Error);
             IntFiles = new List<GoogleDriveFile>();
             List<IDirectory> dirlist = new List<IDirectory>();
             foreach (dynamic v in fr.Result)
@@ -105,7 +103,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new FileSystemResult();
         }
 
-        public Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        public virtual Task<FileSystemSizes> QuotaAsync()
         {
             return FS.QuotaAsync();
         }

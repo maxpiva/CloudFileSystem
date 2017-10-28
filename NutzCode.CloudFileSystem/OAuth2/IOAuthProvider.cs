@@ -1,56 +1,24 @@
 ﻿using System.Collections.Generic;
-using System.ComponentModel.Composition;
-using System.ComponentModel.Composition.Hosting;
+using System.Composition;
+using System.Composition.Hosting;
+#if PRILONGPATH
+using Pri.LongPath;
+using SearchOption = System.IO.SearchOption;
+#else
+using System.IO;
+#endif
+using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 
 namespace NutzCode.CloudFileSystem.OAuth2
 {
-    [InheritedExport]
+
     public interface IOAuthProvider
     {
         string Name { get; }
         Task<AuthResult> Login(AuthRequest request);
     }
 
-    public class AuthResult
-    {
-        public string Code { get; set; }
-        public List<string> Scopes { get; set; }
-        public bool HasError { get; set; }
-        public string ErrorString { get; set; }
-    }
-
-    public class AuthRequest
-    {
-        public string Name { get; set; }
-        public string LoginUrl { get; set; }
-        public string ClientId { get; set; }
-        public List<string> Scopes { get; set; }
-        public string RedirectUri { get; set; }
-        public bool ScopesCommaSeparated { get; set; }
-    }
-
-    public class OAuthProviderFactory
-    {
-        [ImportMany(typeof(IOAuthProvider))]
-        public IEnumerable<IOAuthProvider> List { get; set; }
-
-
-        public OAuthProviderFactory()
-        {
-            Assembly assembly = Assembly.GetEntryAssembly();
-            string dirname = System.IO.Path.GetDirectoryName(assembly.GetName().CodeBase);
-            if (dirname != null)
-            {
-                if (dirname.StartsWith(@"file:\"))
-                    dirname = dirname.Substring(6);
-                AggregateCatalog catalog = new AggregateCatalog();
-                catalog.Catalogs.Add(new AssemblyCatalog(assembly));
-                catalog.Catalogs.Add(new DirectoryCatalog(dirname, "NutzCode.CloudFileSystem.OAuth.*.dll"));
-                var container = new CompositionContainer(catalog);
-                container.ComposeParts(this);
-            }
-        }
-    }
 }

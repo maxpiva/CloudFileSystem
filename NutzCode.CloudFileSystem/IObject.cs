@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NutzCode.CloudFileSystem
 {
-    public interface IObject
+    public interface IObject : IResult
     {
         string Name { get; }
         string FullName { get; }
@@ -28,11 +28,11 @@ namespace NutzCode.CloudFileSystem
         Task<FileSystemResult> DeleteAsync(bool skipTrash);
 
         List<IFile> GetAssets();
-        Task<FileSystemResult<IFile>> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties);    
+        Task<IFile> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties);    
         Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata);
         Task<FileSystemResult<List<Property>>> ReadPropertiesAsync();
-        Task<FileSystemResult> SavePropertyAsync(Property property);
-                
+        Task<FileSystemResult> SavePropertyAsync(Property property);       
+        
         bool TryGetMetadataValue<T>(string name, out T value);
     }
 

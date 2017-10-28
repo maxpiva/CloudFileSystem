@@ -6,7 +6,7 @@ namespace NutzCode.CloudFileSystem
     public interface IFileSystem : IDirectory
     {
         string GetUserAuthorization();
-        Task<FileSystemResult<IObject>> ResolveAsync(string path);
+        Task<IObject> ResolveAsync(string path);
         SupportedFlags Supports { get; }
     }
 }

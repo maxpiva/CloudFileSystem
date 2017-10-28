@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NutzCode.CloudFileSystem.Plugins.OneDrive.Models;
-using Path = Pri.LongPath.Path;
 using Stream = System.IO.Stream;
 
 
@@ -35,8 +32,8 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             do
             {
                 FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStream<ExpandoObject>(url);
-                if (!cl.IsOk)
-                    return new FileSystemResult<dynamic>(cl.Error);
+                if (cl.Status!=Status.Ok)
+                    return new FileSystemResult<dynamic>(cl.Status, cl.Error);
                 dynamic obj = cl.Result;
                 count = obj.children.Count;
                 if (count > 0)
@@ -78,21 +75,21 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
         public async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
             if (Parent == null)
-                return new FileSystemResult("Unable to move root directory");
+                return new FileSystemResult(Status.ArgumentError, "Unable to move root directory");
             if (!(destination is OneDriveDirectory))
-                return new FileSystemResult("Destination should be a Google Drive Directory");
+                return new FileSystemResult(Status.ArgumentError, "Destination should be a Google Drive Directory");
             OneDriveDirectory dest = (OneDriveDirectory)destination;
             if (dest.Id == ((OneDriveDirectory)Parent).Id)
-                return new FileSystemResult("Source Directory and Destination Directory should be different");
+                return new FileSystemResult(Status.ArgumentError, "Source Directory and Destination Directory should be different");
             string url = Item.FormatRest(Id);
             MoveRequest req=new MoveRequest();
             req.ParentReference=new ItemReference();
             req.ParentReference.Id = dest.Id;
 
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)), "application/json", new HttpMethod("PATCH"));
-            if (ex.IsOk)
+            if (ex.Status==Status.Ok)
             {
-                string oldFullname = this.FullName;
+                string oldFullname = FullName;
                 SetData(ex.Result);
                 if (this is OneDriveFile)
                 {
@@ -110,18 +107,18 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
                 Parent = ((OneDriveDirectory)destination);
                 return new FileSystemResult();
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
         public async Task<FileSystemResult> CopyAsync(IDirectory destination)
         {
             if (Parent == null)
-                return new FileSystemResult("Unable to move root directory");
+                return new FileSystemResult(Status.ArgumentError, "Unable to move root directory");
             if (!(destination is OneDriveDirectory))
-                return new FileSystemResult("Destination should be a Google Drive Directory");
+                return new FileSystemResult(Status.ArgumentError, "Destination should be a Google Drive Directory");
             OneDriveDirectory dest = (OneDriveDirectory)destination;
             if (dest.Id == ((OneDriveDirectory)Parent).Id)
-                return new FileSystemResult("Source Directory and Destination Directory should be different");
+                return new FileSystemResult(Status.ArgumentError, "Source Directory and Destination Directory should be different");
             string url = Copy.FormatRest(Id);
             MoveRequest req = new MoveRequest();
             req.ParentReference = new ItemReference();
@@ -130,9 +127,9 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)), "application/json", HttpMethod.Post);
 
             //TODO Add job monitor
-            if (ex.IsOk)
+            if (ex.Status == Status.Ok)
             {
-                string oldFullname = this.FullName;
+                string oldFullname = FullName;
                 if (this is OneDriveFile)
                 {
                     ((OneDriveDirectory)Parent)._files.Remove((OneDriveFile)this);
@@ -149,21 +146,21 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
                 Parent = ((OneDriveDirectory)destination);
                 return new FileSystemResult();
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
         public async Task<FileSystemResult> RenameAsync(string newname)
         {
-            string oldFullname = this.FullName;
-            IDictionary<string, object> dic = this.MetadataExpanded;
+            string oldFullname = FullName;
+            IDictionary<string, object> dic = MetadataExpanded;
             dic["name"] = newname;
-            FileSystemResult r=await WriteMetadataAsync(this.MetadataExpanded);
-            if (r.IsOk)
+            FileSystemResult r=await WriteMetadataAsync(MetadataExpanded);
+            if (r.Status == Status.Ok)
             {
                 if (this is OneDriveDirectory)
                 {
                     FS.Refs.Remove(oldFullname);
-                    FS.Refs[this.FullName] = (OneDriveDirectory)this;
+                    FS.Refs[FullName] = (OneDriveDirectory)this;
                 }
 
             }
@@ -184,12 +181,12 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 
         public async Task<FileSystemResult> TouchAsync()
         {
-            IDictionary<string, object> dic = this.MetadataExpanded;
+            IDictionary<string, object> dic = MetadataExpanded;
             if (dic.ContainsKey("dateTimeLastModified"))
                 dic["dateTimeLastModified"] = JsonConvert.SerializeObject(DateTime.UtcNow);
             else
                 dic.Add("dateTimeLastModified", JsonConvert.SerializeObject(DateTime.UtcNow));
-            return await WriteMetadataAsync(this.MetadataExpanded);
+            return await WriteMetadataAsync(MetadataExpanded);
         }
 
         public async Task<FileSystemResult> DeleteAsync(bool skipTrash)
@@ -197,7 +194,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             FileSystemResult<string> ex;
             string url = Item.FormatRest(Id);
             ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null, HttpMethod.Delete);
-            if (ex.IsOk)
+            if (ex.Status == Status.Ok)
             {
                 if (this is OneDriveFile)
                 {
@@ -209,10 +206,10 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
                 }
                 return new FileSystemResult();
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
-        public async Task<FileSystemResult<IFile>> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<IFile> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             throw new NotSupportedException();
         }
@@ -232,7 +229,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
                 mime = "image/gif";
             if (url.EndsWith("png", StringComparison.InvariantCultureIgnoreCase))
                 mime = "image/png";
-            return new OneDriveThumbAsset(FullName, this.FS, name, url, width, height, mime);
+            return new OneDriveThumbAsset(FullName, FS, name, url, width, height, mime);
         }       
         private void SetAssets()
         {
@@ -244,12 +241,15 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
                 {
                     foreach (object o in ex)
                     {
-                        string[] str1 = new[] {"source", "small", "medium", "large"};
-                        string[] str2 = new[] {":thumbnail{0}", ":thumbnail{0}small", ":thumbnail{0}medium", ":thumbnail{0}large"};
-                        IList<object> lms = (IList< object >)o;
+                        string[] str1 = {"source", "small", "medium", "large"};
+                        string[] str2 = {":thumbnail{0}", ":thumbnail{0}small", ":thumbnail{0}medium", ":thumbnail{0}large"};
+                        // ReSharper disable once ExpressionIsAlwaysNull
+                        IList<object> lms = o as IList<object>;
                         int cnt = 0;
+                        // ReSharper disable once PossibleNullReferenceException
                         foreach (object thumb in lms)
                         {
+                            // ReSharper disable once PossibleInvalidCastException
                             IDictionary<string, object> dic = (IDictionary<string, object>) o;
                             for (int x = 0; x < str1.Length; x++)
                             {
@@ -269,19 +269,19 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
         {
             string url = Item.FormatRest(Id);
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(metadata)), "application/json", new HttpMethod("PATCH"));
-            if (ex.IsOk)
+            if (ex.Status == Status.Ok)
             {
                 SetData(ex.Result);
                 return new FileSystemResult();
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
-        public async Task<FileSystemResult<List<Property>>> ReadPropertiesAsync()
+        public Task<FileSystemResult<List<Property>>> ReadPropertiesAsync()
         {
             throw new NotSupportedException();
         }
 
-        public async Task<FileSystemResult> SavePropertyAsync(Property property)
+        public Task<FileSystemResult> SavePropertyAsync(Property property)
         {
             throw new NotSupportedException();
         }

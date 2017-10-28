@@ -2,10 +2,9 @@
 using System.Runtime.CompilerServices;
 using Newtonsoft.Json;
 
-[assembly: InternalsVisibleTo("NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive"), InternalsVisibleTo("NutzCode.CloudFileSystem.Plugins.GoogleDrive")]
 namespace NutzCode.CloudFileSystem.OAuth2
 {
-    internal class Token
+    public class Token
     {
         [JsonProperty("token_type")]
         public string TokenType { get; set; }

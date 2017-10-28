@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using NutzCode.CloudFileSystem.OAuth2;
 using NutzCode.CloudFileSystem.Plugins.GoogleDrive.Properties;
 
@@ -10,31 +9,24 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
         public string Name => "Google Drive";
         public byte[] Icon => Resources.Image48x48;
-        public const string AcknowledgeAbuse = "AcknowledgeAbuse";
 
-        public List<AuthorizationRequirement> AuthorizationRequirements
+        public PluginAuthData PluginAuthData => new PluginAuthData { LoginUri = GoogleDriveFileSystem.GoogleOAuthLogin, RequiredScopes = GoogleDriveFileSystem.GoogleScopes, ScopesCommaSeparated = false };
+
+
+        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettings settings, string userauthorization)
         {
-            get
-            {
-                List<AuthorizationRequirement> reqs=new List<AuthorizationRequirement>(OAuth.AuthorizationRequirements);
-                reqs.Add(new AuthorizationRequirement {  IsRequired = false,Name=AcknowledgeAbuse,Type=typeof(bool)});
-                return reqs;
-            }
+            return GoogleDriveFileSystem.Create(filesystemname, settings, Name, userauthorization);
         }
 
-
-
-
-        public async Task<FileSystemResult<IFileSystem>> InitAsync(string fname, IOAuthProvider provider, Dictionary<string, object> settings, string userauthorization = null)
+        public Task<IFileSystem> InitAsync(string filesystemname, ProxyUserSettings settings, string userauthorization)
         {
-            FileSystemResult<GoogleDriveFileSystem> r = await GoogleDriveFileSystem.Create(fname, provider, settings, Name, userauthorization);
-            if (!r.IsOk)
-                return new FileSystemResult<IFileSystem>(r.Error);
-            GoogleDriveFileSystem f = r.Result;
+            return GoogleDriveFileSystem.Create(filesystemname, settings, Name, userauthorization);
+        }
+        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettingWithCode settings)
+        {
+            return GoogleDriveFileSystem.Create(filesystemname, settings, Name, null);
+        }
 
-            if (settings.ContainsKey(AcknowledgeAbuse) && (settings[AcknowledgeAbuse] is bool))
-                f.AckAbuse = (bool)settings[AcknowledgeAbuse];
-            return new FileSystemResult<IFileSystem>(f);
-        }        
+       
     }
 }

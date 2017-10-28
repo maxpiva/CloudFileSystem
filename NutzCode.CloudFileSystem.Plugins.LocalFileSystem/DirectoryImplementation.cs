@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
-using FileInfo = Pri.LongPath.FileInfo;
+#if PRILONGPATH
+using Pri.LongPath;
+using DirectoryInfo=System.IO.DirectoryInfo;
+using FileInfo=System.IO.FileInfo;
+#else
+using System.IO;
+#endif
 using Stream = System.IO.Stream;
-using FileAttributes = System.IO.FileAttributes;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
     public abstract class  DirectoryImplementation : LocalObject, IDirectory, IOwnDirectory<LocalFile,DirectoryImplementation>
     {
+        
         public List<DirectoryImplementation> IntDirectories { get; set; }=new List<DirectoryImplementation>();
         public List<LocalFile> IntFiles { get; set; }=new List<LocalFile>();
 
@@ -35,12 +35,12 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             
         }
 
-        public virtual async Task<FileSystemResult<IFile>> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public virtual async Task<IFile> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             return await InternalCreateFile(this, name, readstream, token, progress, properties);
         }
 
-        public virtual async Task<FileSystemResult<IDirectory>> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
+        public virtual async Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
         {
             try
             {
@@ -56,12 +56,12 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 f.Parent = this;
                 FS.Refs[f.FullName] = f;
                 IntDirectories.Add(f);
-                return await Task.FromResult(new FileSystemResult<IDirectory>(f));
+                return await Task.FromResult(f);
 
             }
             catch (Exception e)
             {
-                return new FileSystemResult<IDirectory>("Error : " + e.Message);
+                return new LocalDirectory(null, FS) { Status=Status.SystemError, Error="Error : " + e.Message};
             }
         }
 
@@ -104,7 +104,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
        
 
 
-        public virtual async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        public virtual async Task<FileSystemSizes> QuotaAsync()
         {
             FileSystemSizes Sizes = new FileSystemSizes();
             if (Extensions.IsLinux)
@@ -118,16 +118,15 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             else
             {
                 ulong freebytes;
-                ulong totalnumberofbytes;
                 ulong totalnumberoffreebytes;
-                if (GetDiskFreeSpaceEx(FullName, out freebytes, out totalnumberofbytes, out totalnumberoffreebytes))
+                if (GetDiskFreeSpaceEx(FullName, out freebytes, out _, out totalnumberoffreebytes))
                 {
                     Sizes.TotalSize = (long)totalnumberoffreebytes;
                     Sizes.AvailableSize = (long)freebytes;
                     Sizes.UsedSize = Sizes.TotalSize - Sizes.AvailableSize;
                 }
             }
-            return await Task.FromResult(new FileSystemResult<FileSystemSizes>(Sizes));
+            return await Task.FromResult(Sizes);
         }
 
 

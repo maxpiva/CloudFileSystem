@@ -1,34 +1,66 @@
-﻿namespace NutzCode.CloudFileSystem
+﻿using System.Runtime.InteropServices.ComTypes;
+
+namespace NutzCode.CloudFileSystem
 {
+    
     public class FileSystemResult<T> : FileSystemResult
     {
         public T Result { get; set; }
-        public FileSystemResult(string error) : base(error)
+        public FileSystemResult(Status status, string error) : base(status, error)
         {
         }
         public FileSystemResult(T result)
         {
             Result = result;
+            Status = Status.Ok;
         }
 
     }
-
-    public class FileSystemResult
+    public interface IResult
     {
-        public bool IsOk { get; set; }
+        Status Status { get; set; }
+        string Error { get; set; }
+
+    }
+
+    public static class IResultExtensions
+    {
+        public static void CopyErrorTo(this IResult o, IResult n)
+        {
+            n.Status = o.Status;
+            n.Error = o.Error;
+        }
+    }
+    public class FileSystemResult : IResult
+    {
+
+        public Status Status { get; set; }
         public string Error { get; set; }
 
-        public FileSystemResult(string error)
+        public FileSystemResult(Status status, string error)
         {
             Error = error;
-
-            IsOk = false;
+            Status = status;
         }
 
         public FileSystemResult()
         {
-            IsOk = true;
+            Status = Status.Ok;
         }
+
+
     }
 
+    public enum Status
+    {
+        Ok,
+        ArgumentError,
+        LoginRequired,
+        UnableToLogin,
+        HttpError,
+        NotFound,
+        Canceled,
+        SystemError,
+
+    }
 }

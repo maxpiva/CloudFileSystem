@@ -3,7 +3,11 @@ using System.Collections.Generic;
 using System.Dynamic;
 using Stream = System.IO.Stream;
 using MemoryStream = System.IO.MemoryStream;
-using Path = Pri.LongPath.Path;
+#if PRILONGPATH
+using Pri.LongPath;
+#else
+using System.IO;
+#endif
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -36,8 +40,8 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             do
             {
                 FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStream<ExpandoObject>(url);
-                if (!cl.IsOk)
-                    return new FileSystemResult<dynamic>(cl.Error);
+                if (cl.Status!=Status.Ok)
+                    return new FileSystemResult<dynamic>(cl.Status, cl.Error);
                 dynamic obj = cl.Result;
                 count = obj.items.Count;
                 if (count > 0)
@@ -110,82 +114,82 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         public async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
             if (Parent == null)
-                return new FileSystemResult("Unable to move root directory");
+                return new FileSystemResult(Status.ArgumentError, "Unable to move root directory");
             if (!(destination is GoogleDriveDirectory))
-                return new FileSystemResult("Destination should be a Google Drive Directory");
+                return new FileSystemResult(Status.ArgumentError, "Destination should be a Google Drive Directory");
             GoogleDriveDirectory dest = (GoogleDriveDirectory)destination;
             if (dest.Id == ((GoogleDriveDirectory)Parent).Id)
-                return new FileSystemResult("Source Directory and Destination Directory should be different");
+                return new FileSystemResult(Status.ArgumentError, "Source Directory and Destination Directory should be different");
             string addParents = dest.Id;
             string removeParents = ((GoogleDriveDirectory)Parent).Id;
 
             string url = GooglePatch.FormatRest(Id);
             url += "?addParents=" + addParents + "&removeParents=" + removeParents;
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null,new HttpMethod("PATCH"));
-            if (ex.IsOk)
+            if (ex.Status==Status.Ok)
             {
-                string oldFullname = this.FullName;
-                this.SetData(ex.Result);
+                string oldFullname = FullName;
+                SetData(ex.Result);
                 ChangeObjectDirectory<GoogleDriveDirectory,GoogleDriveFile>(oldFullname,FS.Refs,this,(GoogleDriveDirectory)Parent,dest);
                 return new FileSystemResult();
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
         public async Task<FileSystemResult> CopyAsync(IDirectory destination)
         {
             if (Parent == null)
-                return new FileSystemResult("Unable to copy root directory");
+                return new FileSystemResult(Status.ArgumentError, "Unable to copy root directory");
             if (!(destination is GoogleDriveDirectory))
-                return new FileSystemResult("Destination should be a Google Drive Directory");
+                return new FileSystemResult(Status.ArgumentError, "Destination should be a Google Drive Directory");
             GoogleDriveDirectory dest = (GoogleDriveDirectory)destination;
             if (dest.Id == ((GoogleDriveDirectory)Parent).Id)
-                return new FileSystemResult("Source Directory and Destination Directory should be different");
+                return new FileSystemResult(Status.ArgumentError, "Source Directory and Destination Directory should be different");
             string addParents = dest.Id;
 
             string url = GooglePatch.FormatRest(Id);
             url += "?addParents=" + addParents;
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null, new HttpMethod("PATCH"));
-            if (ex.IsOk)
+            if (ex.Status == Status.Ok)
             {
                 if (this is GoogleDriveFile)
                 {
-                    GoogleDriveFile f = new GoogleDriveFile(destination.FullName, this.FS);
-                    f.SetData(this.Metadata, this.MetadataExpanded, this.MetadataMime);
+                    GoogleDriveFile f = new GoogleDriveFile(destination.FullName, FS);
+                    f.SetData(Metadata, MetadataExpanded, MetadataMime);
                     f.Parent = destination;
                     dest.Files.Add(f);
                 }
                 else if (this is GoogleDriveDirectory)
                 {
-                    GoogleDriveDirectory d = new GoogleDriveDirectory(destination.FullName, this.FS);
-                    d.SetData(this.Metadata, this.MetadataExpanded, this.MetadataMime);
+                    GoogleDriveDirectory d = new GoogleDriveDirectory(destination.FullName, FS);
+                    d.SetData(Metadata, MetadataExpanded, MetadataMime);
                     d.Parent = destination;
                     dest.Directories.Add(d);
                     FS.Refs[d.FullName] = d;
                 }
                 return new FileSystemResult();
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
         public async Task<FileSystemResult> RenameAsync(string newname)
         {
-            string oldFullname = this.FullName;
+            string oldFullname = FullName;
             string url = GooglePatch.FormatRest(Id);
             File f=new File();
             f.Title = newname;
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(f)), "application/json", new HttpMethod("PATCH"));
-            if (ex.IsOk)
+            if (ex.Status == Status.Ok)
             {
                 SetData(ex.Result);
                 if (this is GoogleDriveDirectory)
                 {
                     FS.Refs.Remove(oldFullname);
-                    FS.Refs[this.FullName] = (GoogleDriveDirectory)this;
+                    FS.Refs[FullName] = (GoogleDriveDirectory)this;
                 }
                 return new FileSystemResult();
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
         public void SetData(string data)
@@ -201,12 +205,12 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         {
             string url = GoogleTouch.FormatRest(Id);
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null, HttpMethod.Post);
-            if (ex.IsOk)
+            if (ex.Status == Status.Ok)
             {
                 SetData(ex.Result);
                 return new FileSystemResult();
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
         public async Task<FileSystemResult> DeleteAsync(bool skipTrash)
@@ -222,7 +226,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 string url = GoogleTrash.FormatRest(Id);
                 ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null, HttpMethod.Post);
             }
-            if (ex.IsOk)
+            if (ex.Status == Status.Ok)
             {
                 if (this is GoogleDriveFile)
                 {
@@ -234,14 +238,14 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 }
                 return new FileSystemResult();
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
-        public async Task<FileSystemResult<IFile>> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<IFile> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             string ext = Path.GetExtension(name);
             if ((ext != "png") && (ext != "jpg") && (ext != "jpeg") && (ext != "gif"))
-                return new FileSystemResult<IFile>("Google Drive only supports 'thumbnail' asset, acceptable formats are, jpg, png and gif");
+                return new GoogleDriveFile("",FS) { Status=Status.ArgumentError, Error="Google Drive only supports 'thumbnail' asset, acceptable formats are, jpg, png and gif" };
             string mime;
             switch (ext)
             {
@@ -262,11 +266,12 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             File f = new File { Thumbnail = new File.ThumbnailData {MimeType = mime, Image = Convert.ToBase64String(ms.ToArray())} };
             string url = GooglePatch.FormatRest(Id);
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(f)), "application/json", new HttpMethod("PATCH"));
-            if (!ex.IsOk)
-                return new FileSystemResult<IFile>(ex.Error);
+            if (ex.Status != Status.Ok)
+                return new GoogleDriveFile("", FS) {Status = ex.Status, Error = ex.Error};
+            
             Assets.Clear();
             Assets.Add(file);
-            return new FileSystemResult<IFile>(file);
+            return file;
         }
         private void SetAssets()
         {
@@ -290,12 +295,12 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         {
             string url = GooglePatch.FormatRest(Id);
             FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(metadata)), "application/json", new HttpMethod("PATCH"));
-            if (ex.IsOk)
+            if (ex.Status == Status.Ok)
             {
                 SetData(ex.Result);
                 return new FileSystemResult();
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
         public async Task<FileSystemResult<List<Property>>> ReadPropertiesAsync()
@@ -303,8 +308,8 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             List<Property> props=new List<Property>();
             string url = GoogleProperties.FormatRest(Id);
             FileSystemResult<dynamic> fr = await List(url);
-            if (!fr.IsOk)
-                return new FileSystemResult<List<Property>>(fr.Error);
+            if (fr.Status != Status.Ok)
+                return new FileSystemResult<List<Property>>(fr.Status, fr.Error);
             foreach (dynamic v in fr.Result)
             {
                 props.Add(new Property {IsPublic = v.visibility == "PUBLIC", Key = v.key, Value = v.value});
@@ -315,8 +320,8 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         public async Task<FileSystemResult> SavePropertyAsync(Property property)
         {
             FileSystemResult<List<Property>> fex=await ReadPropertiesAsync();
-            if (!fex.IsOk)
-                return new FileSystemResult(fex.Error);
+            if (fex.Status != Status.Ok)
+                return new FileSystemResult(fex.Status, fex.Error);
             Property p = fex.Result.FirstOrDefault(a => a.Key == property.Key);
             File.Property prop = new File.Property
             {
@@ -330,15 +335,15 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             {
                 string url = GoogleProperty.FormatRest(Id, property.Key);
                 FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(prop)), "application/json", new HttpMethod("PATCH"));
-                if (!ex.IsOk)
-                    return new FileSystemResult<IFile>(ex.Error);
+                if (ex.Status!=Status.Ok)
+                    return new FileSystemResult<IFile>(ex.Status, ex.Error);
             }
             else
             {
                 string url = GoogleProperties.FormatRest(Id);
                 FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(prop)), "application/json",HttpMethod.Post);
-                if (!ex.IsOk)
-                    return new FileSystemResult<IFile>(ex.Error);
+                if (ex.Status!=Status.Ok)
+                    return new FileSystemResult<IFile>(ex.Status, ex.Error);
             }
             return new FileSystemResult();
         }

@@ -1,15 +1,13 @@
 ﻿﻿using System;
- using System.Collections.Generic;
- using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
-using FileInfo = Pri.LongPath.FileInfo;
-using Stream = System.IO.Stream;
-using FileAttributes = System.IO.FileAttributes;
+#if PRILONGPATH
+using Pri.LongPath;
+using DirectoryInfo=System.IO.DirectoryInfo;
+using FileInfo=System.IO.FileInfo;
+#else
+using System.IO;
+#endif
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
@@ -32,18 +30,18 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             FS = this;
         }
 
-        public static async Task<FileSystemResult<IFileSystem>> Create(string name)
+        public static async Task<IFileSystem> Create(string name)
         {
             LocalFileSystem l = new LocalFileSystem();
             l.fname = name;
             FileSystemResult r = await l.PopulateAsync();
-            if (!r.IsOk)
-                return new FileSystemResult<IFileSystem>(r.Error);
-            return new FileSystemResult<IFileSystem>(l);
+            if (r.Status != Status.Ok)
+                r.CopyErrorTo(l);
+            return l;
         }
 
         //TODO locking?
-        public override async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        public override async Task<FileSystemSizes> QuotaAsync()
         {
             Sizes = new FileSystemSizes();
             // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
@@ -51,12 +49,12 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             {
                 try
                 {
-                    FileSystemResult<FileSystemSizes> z = await ld.QuotaAsync();
-                    if (z.IsOk)
+                    FileSystemSizes z = await ld.QuotaAsync();
+                    if (z.Status==Status.Ok)
                     {
-                        Sizes.AvailableSize += z.Result.AvailableSize;
-                        Sizes.UsedSize += z.Result.UsedSize;
-                        Sizes.TotalSize += z.Result.TotalSize;
+                        Sizes.AvailableSize += z.AvailableSize;
+                        Sizes.UsedSize += z.UsedSize;
+                        Sizes.TotalSize += z.TotalSize;
                     }
                 }
                 catch (Exception) //Cdrom and others
@@ -64,20 +62,20 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                     //ignored
                 }
             }
-            return await Task.FromResult(new FileSystemResult<FileSystemSizes>(Sizes));
+            return await Task.FromResult(Sizes);
         }
 
-        public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
+        public async Task<IObject> ResolveAsync(string path)
         {
             try
             {
                 // Allow either and convert to OS desired later
                 if (path.StartsWith("\\\\") || path.StartsWith("//"))
                 {
-                    int idx = path.IndexOf(System.IO.Path.DirectorySeparatorChar, 2);
+                    int idx = path.IndexOf(Path.DirectorySeparatorChar, 2);
                     if (idx >= 0)
                     {
-                        idx = path.IndexOf(System.IO.Path.DirectorySeparatorChar, idx + 1);
+                        idx = path.IndexOf(Path.DirectorySeparatorChar, idx + 1);
                         if (idx < 0)
                             idx = path.Length;
                     }
@@ -85,7 +83,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                         idx = path.Length;
                     string share = path.Substring(0, idx);
                     if (!Directory.Exists(share))
-                        return new FileSystemResult<IObject>("Not found");
+                        return new EmptyObject { Status = Status.NotFound, Error = "Directory Not Found" };
                     if (FS.Directories.All(a => !a.FullName.Equals(share, StringComparison.InvariantCultureIgnoreCase)))
                         FS.AddUncPath(share);
                     path = path.Replace(share, share.Replace('\\', '*'));
@@ -95,7 +93,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             catch (Exception e)
             {
                 // Last ditch effort to catch errors, this needs to always succeed.
-                return new FileSystemResult<IObject>(e.Message);
+                return new EmptyObject { Status=Status.SystemError, Error=e.Message};
             }
 
             return await Refs.ObjectFromPath(this, path);

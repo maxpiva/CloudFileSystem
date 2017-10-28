@@ -9,7 +9,6 @@
 //------------------------------------------------------------------------------
 
 namespace NutzCode.CloudFileSystem.OAuth.Windows.WPF.Properties {
-    using System;
     
     
     /// <summary>
@@ -38,7 +37,7 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WPF.Properties {
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
-                if (object.ReferenceEquals(resourceMan, null)) {
+                if ((resourceMan == null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("NutzCode.CloudFileSystem.OAuth.Windows.WPF.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }

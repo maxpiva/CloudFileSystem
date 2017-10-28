@@ -22,11 +22,11 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WPF
                 {
                     r.Code = l.Code;
                     r.Scopes = l.Scopes;
-                    r.HasError = false;
+                    r.Status=Status.Ok;
                 }
                 else
                 {
-                    r.HasError = true;
+                    r.Status = Status.UnableToLogin;
                     r.ErrorString = "Unable to login";
                 }
 

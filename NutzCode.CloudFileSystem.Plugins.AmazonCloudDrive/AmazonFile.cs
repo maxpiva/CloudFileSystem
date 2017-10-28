@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Stream = System.IO.Stream;
-using MemoryStream = System.IO.MemoryStream;
 using System.Threading;
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web;
@@ -58,14 +57,14 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 #if DEBUG || EXPERIMENTAL
             string type;
             TryGetMetadataValue("kind", out type);
-            FileSystemResult<IFile> f=await InternalCreateFile(Name, type,true,(AmazonObject)Parent,readstream,token,progress,properties);
-            if (f.IsOk)
+            IFile f=await InternalCreateFile(Name, type,true,(AmazonObject)Parent,readstream,token,progress,properties);
+            if (f.Status==Status.Ok)
             {
                 // ReSharper disable once PossibleInvalidCastException
                 // ReSharper disable once SuspiciousTypeConversion.Global
-                SetData((BaseObject) (object) f);
+                SetData((BaseObject) f);
             }
-            return f;
+            return new FileSystemResult(f.Status, f.Error);
 #else
             throw new NotSupportedException();
 #endif

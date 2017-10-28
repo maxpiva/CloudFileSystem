@@ -6,11 +6,14 @@ using MemoryStream = System.IO.MemoryStream;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
+#if PRILONGPATH
+using Pri.LongPath;
+#else
+using System.IO;
+#endif
+
+
+
 
 namespace NutzCode.CloudFileSystem
 {
@@ -26,7 +29,7 @@ namespace NutzCode.CloudFileSystem
         public DateTime? ModifiedDate => DateTime.Now;
         public DateTime? CreatedDate => DateTime.Now;
         public DateTime? LastViewed => DateTime.Now;
-        public ObjectAttributes Attributes => (ObjectAttributes) 0;
+        public ObjectAttributes Attributes => 0;
         public IDirectory Parent => null;
         public IFileSystem FileSystem => null;
         public ExpandoObject MetadataExpanded => null;
@@ -75,7 +78,7 @@ namespace NutzCode.CloudFileSystem
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult<IFile>> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<IFile> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             throw new NotSupportedException();
         }
@@ -143,5 +146,7 @@ namespace NutzCode.CloudFileSystem
 
         public string ContentType => _mime;
         public string Extension => Path.GetExtension(_name);
+        public Status Status { get; set; }
+        public string Error { get; set; }
     }
 }

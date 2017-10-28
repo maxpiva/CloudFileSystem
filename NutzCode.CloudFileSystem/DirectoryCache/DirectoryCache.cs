@@ -20,7 +20,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
             dirs.ForEach(a=>this[a.FullName]=a);
         }
 
-        private async Task<FileSystemResult<IObject>> GetFromPath(IDirectory d, string path)
+        private async Task<IObject> GetFromPath(IDirectory d, string path)
         {
             try
             {
@@ -30,8 +30,8 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                 if (!d.IsPopulated)
                 {
                     FileSystemResult n = await d.PopulateAsync();
-                    if (!n.IsOk)
-                        return new FileSystemResult<IObject>(n.Error);
+                    if (n.Status != Status.Ok)
+                        return new EmptyObject {Status = n.Status, Error = n.Error};
                     populated = true;
                 }
                 if (path.Contains($"{System.IO.Path.DirectorySeparatorChar}"))
@@ -55,12 +55,12 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                         if (populated)
                             break;
                         FileSystemResult n = await d.PopulateAsync();
-                        if (!n.IsOk)
-                            return new FileSystemResult<IObject>(n.Error);
+                        if (n.Status != Status.Ok)
+                            return new EmptyObject { Status = n.Status, Error = n.Error };
                         populated = true;
                     }
                     if (fnd == null)
-                        return new FileSystemResult<IObject>("File Not Found");
+                        return new EmptyObject { Status = Status.NotFound, Error = "File Not Found" };
                     return await GetFromPath(fnd, path);
                 }
                 while (true)
@@ -68,31 +68,31 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                     foreach (IFile dn in d.Files)
                     {
                         if (dn.Name.Equals(path.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}"), StringComparison.InvariantCultureIgnoreCase))
-                            return new FileSystemResult<IObject>(dn);
+                            return dn;
                     }
                     foreach (IDirectory dn in d.Directories)
                     {
                         if (dn.Name.Equals(path.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}"), StringComparison.InvariantCultureIgnoreCase))
-                            return new FileSystemResult<IObject>(dn);
+                            return dn;
                     }
                     if (populated)
                         break;
                     FileSystemResult n = await d.PopulateAsync();
-                    if (!n.IsOk)
-                        return new FileSystemResult<IObject>(n.Error);
+                    if (n.Status!=Status.Ok)
+                        return new EmptyObject { Status = n.Status, Error = n.Error };
                     populated = true;
                 }
-                return new FileSystemResult<IObject>("File Not Found");
+                return new EmptyObject { Status = Status.NotFound, Error = "File Not Found" };
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 //FS Errors=NOT FOUND
-                return new FileSystemResult<IObject>("File Not Found");
+                return new EmptyObject { Status = Status.NotFound, Error = "File Not Found" };
             }
         
         }
 
-        public async Task<FileSystemResult<IObject>> ObjectFromPath(IFileSystem fs, string fullpath)
+        public async Task<IObject> ObjectFromPath(IFileSystem fs, string fullpath)
         {
             // take both and convert
             fullpath = fullpath.Replace("/", $"{System.IO.Path.DirectorySeparatorChar}");
@@ -103,12 +103,12 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
 
             if (fullpath.Equals($"{System.IO.Path.DirectorySeparatorChar}") || fullpath == string.Empty ||
                 fullpath.Equals(fs.FullName, StringComparison.InvariantCultureIgnoreCase))
-                return new FileSystemResult<IObject>(fs);
+                return fs;
 
             IDirectory d = this[fullpath.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}")];
             string lastpart = string.Empty;
             if (d != null)
-                return new FileSystemResult<IObject>(d);
+                return d;
             while (fullpath != string.Empty)
             {
                 int idx = fullpath.LastIndexOf($"{System.IO.Path.DirectorySeparatorChar}", StringComparison.InvariantCulture);
@@ -135,7 +135,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                     if (!originalPath.StartsWith(directory.Name, StringComparison.InvariantCulture)) continue;
 
                     if (originalPath.Equals(directory.Name, StringComparison.InvariantCulture))
-                        return new FileSystemResult<IObject>(directory);
+                        return directory;
 
                     lastpart = originalPath.Substring(directory.Name.Length);
                     d = directory;

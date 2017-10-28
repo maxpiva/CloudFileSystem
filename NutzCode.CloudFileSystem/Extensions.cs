@@ -1,18 +1,11 @@
 ﻿using System;
-using Stream = System.IO.Stream;
-using MemoryStream = System.IO.MemoryStream;
-
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
-using FileInfo = Pri.LongPath.FileInfo;
-
+using System.Net;
+#if PRILONGPATH
+using Pri.LongPath;
+#else
+using System.IO;
+#endif
 namespace NutzCode.CloudFileSystem
 {
     public static class Extensions
@@ -23,9 +16,6 @@ namespace NutzCode.CloudFileSystem
                 extension = extension.Substring(1);
             return MimeTypes.MimeTypeMap.GetMimeType(extension);
         }
-
-
-
 
         public static string ToString(this ICloudPlugin plugin)
         {
@@ -43,10 +33,7 @@ namespace NutzCode.CloudFileSystem
 
         public static string Application(this IFile file)
         {
-            string v = null;
-            if (file.TryGetMetadataValue("application", out v))
-                return v;
-            return null;
+            return file.TryGetMetadataValue("application", out string v) ? v : null;
         }
         /*
         public static string FullPath(this IObject obj)
@@ -73,7 +60,7 @@ namespace NutzCode.CloudFileSystem
         */
         public static string FormatRest(this string template, params object[] objs)
         {
-            return string.Format(template, objs.Select(o => o.ToString()).Select(n => (!n.StartsWith("?") && !n.StartsWith("http"))? HttpUtility.UrlEncode(n) : n).Cast<object>().ToArray());
+            return string.Format(template, objs.Select(o => o.ToString()).Select(n => (!n.StartsWith("?") && !n.StartsWith("http"))? WebUtility.UrlEncode(n) : n).Cast<object>().ToArray());
         }
         /*
         public static async Task<IObject> ObjectFromPath(this IDirectory dir, string fullname)

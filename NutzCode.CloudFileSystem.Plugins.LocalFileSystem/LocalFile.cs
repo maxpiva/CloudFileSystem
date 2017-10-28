@@ -1,16 +1,19 @@
 ﻿﻿using System;
 using System.Collections.Generic;
- using System.IO;
- using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
-using FileInfo = Pri.LongPath.FileInfo;
+ using MimeTypes;
+#if PRILONGPATH
+using Pri.LongPath;
+using DirectoryInfo=System.IO.DirectoryInfo;
+using FileInfo=System.IO.FileInfo;
+using FileNotFoundException=System.IO.FileNotFoundException;
+#else
+using System.IO;
+#endif
 using Stream = System.IO.Stream;
 using FileAttributes = System.IO.FileAttributes;
+
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
@@ -18,7 +21,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
     {
         // ReSharper disable once InconsistentNaming
         internal FileInfo file;
-
         public override string Name => file?.Name ?? string.Empty;
         public override DateTime? ModifiedDate => file?.LastWriteTime;
         public override DateTime? CreatedDate => file?.CreationTime;
@@ -52,12 +54,12 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             try
             {
                 if (file == null)
-                    return new FileSystemResult<Stream>("Empty File");
+                    return new FileSystemResult<Stream>(Status.ArgumentError,"Empty File");
                 return await Task.FromResult(new FileSystemResult<Stream>(file?.OpenRead()));
             }
             catch (Exception e)
             {
-                return await Task.FromResult(new FileSystemResult<Stream>(e.Message));
+                return await Task.FromResult(new FileSystemResult<Stream>(Status.SystemError, e.Message));
             }
         }
 
@@ -66,11 +68,12 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             try
             {
-                return await InternalCreateFile((DirectoryImplementation) Parent, Name, readstream, token, progress, properties);
+                await InternalCreateFile((DirectoryImplementation) Parent, Name, readstream, token, progress, properties);
+                return new FileSystemResult();
             }
             catch (Exception e)
             {
-                return new FileSystemResult(e.Message);
+                return new FileSystemResult(Status.ArgumentError, e.Message);
             }
         }
 
@@ -81,10 +84,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             get
             {
-                List<string> ls = MimeTypeMap.List.MimeTypeMap.GetMimeType(Extension);
-                if (ls == null || ls.Count == 0)
-                    return string.Empty;
-                return ls[0];
+                return MimeTypeMap.GetMimeType(Extension);
             }
         }
 
@@ -97,20 +97,20 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             {
                 DirectoryImplementation to = destination as DirectoryImplementation;
                 if (to == null)
-                    return new FileSystemResult("Destination should be a Local Directory");
+                    return new FileSystemResult(Status.ArgumentError, "Destination should be a Local Directory");
                 if (to is LocalRoot)
-                    return new FileSystemResult("Root cannot be destination");
+                    return new FileSystemResult(Status.ArgumentError, "Root cannot be destination");
                 string destname = Path.Combine(to.FullName, Name);
                 File.Move(FullName, destname);
                 ((DirectoryImplementation) Parent).IntFiles.Remove(this);
                 to.IntFiles.Add(this);
-                this.Parent = to;
+                Parent = to;
                 file = new FileInfo(destname);
                 return await Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)
             {
-                return new FileSystemResult(e.Message);
+                return new FileSystemResult(Status.SystemError, e.Message);
             }
         }
 
@@ -120,9 +120,9 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             {
                 DirectoryImplementation to = destination as DirectoryImplementation;
                 if (to == null)
-                    return new FileSystemResult("Destination should be a Local Directory");
+                    return new FileSystemResult(Status.ArgumentError, "Destination should be a Local Directory");
                 if (to is LocalRoot)
-                    return new FileSystemResult("Root cannot be destination");
+                    return new FileSystemResult(Status.ArgumentError, "Root cannot be destination");
                 string destname = Path.Combine(to.FullName, Name);
 
                 File.Copy(FullName, destname);
@@ -134,7 +134,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             }
             catch (Exception e)
             {
-                return new FileSystemResult(e.Message);
+                return new FileSystemResult(Status.SystemError, e.Message);
             }
         }
 
@@ -143,7 +143,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             try
             {
                 if (string.Equals(Name, newname))
-                    return new FileSystemResult("Unable to rename, names are the same");
+                    return new FileSystemResult(Status.ArgumentError, "Unable to rename, names are the same");
                 string newfullname = Path.Combine(Parent.FullName, newname);
                 File.Move(FullName, newfullname);
                 FileInfo finfo = new FileInfo(newfullname);
@@ -152,7 +152,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             }
             catch (Exception e)
             {
-                return new FileSystemResult(e.Message);
+                return new FileSystemResult(Status.SystemError, e.Message);
             }
         }
 
@@ -165,7 +165,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             }
             catch (Exception e)
             {
-                return new FileSystemResult(e.Message);
+                return new FileSystemResult(Status.SystemError, e.Message);
             }
         }
 
@@ -180,7 +180,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             catch (Exception e)
             {
                 if (e is FileNotFoundException) return await Task.FromResult(new FileSystemResult());
-                return new FileSystemResult(e.Message);
+                return new FileSystemResult(Status.SystemError, e.Message);
             }
         }
     }

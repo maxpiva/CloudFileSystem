@@ -2,7 +2,7 @@
 [assembly: InternalsVisibleTo("NutzCode.CloudFileSystem.AmazonCloudDrive"), InternalsVisibleTo("NutzCode.CloudFileSystem.GoogleDrive")]
 namespace NutzCode.CloudFileSystem
 {
-    public class FileSystemSizes
+    public class FileSystemSizes : FileSystemResult
     {
         public long AvailableSize { get; set; }
         public long TotalSize { get; set; }

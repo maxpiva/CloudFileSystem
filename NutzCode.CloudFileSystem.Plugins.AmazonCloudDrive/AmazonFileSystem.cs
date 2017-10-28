@@ -23,20 +23,18 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         internal DirectoryCache.DirectoryCache Refs=new DirectoryCache.DirectoryCache(CloudFileSystemPluginFactory.DirectoryTreeCacheSize);
 
         public SupportedFlags Supports => SupportedFlags.Assets | SupportedFlags.MD5 | SupportedFlags.Properties;
-
-        private AmazonFileSystem(IOAuthProvider provider) : base(null)
+        private AmazonFileSystem() : base(null)
         {
             FS = this;
-            OAuth=new OAuth(provider);
+            OAuth=new OAuth(AmazonOAuth, AmazonOAuth, AmazonEndpoint);
         }
 
         internal async Task<FileSystemResult> CheckExpirations()
         {
             FileSystemResult r = await OAuth.MayRefreshToken();
-            if (!r.IsOk)
+            if (r.Status != Status.Ok) 
                 return r;
-            r = await OAuth.MayRefreshEndPoint();
-            return r;
+            return await OAuth.MayRefreshEndPoint();
         }
 
 
@@ -49,34 +47,45 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return dta.Serialize();
         }
 
-        public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
+        public Task<IObject> ResolveAsync(string path)
         {
-            return await Refs.ObjectFromPath(this, path);
+            return Refs.ObjectFromPath(this, path);
         }
 
         public FileSystemSizes Sizes { get; private set; }
 
-        public static async Task<FileSystemResult<AmazonFileSystem>> Create(string fname, IOAuthProvider provider, Dictionary<string,object> settings, string pluginanme, string userauthorization=null)
+        public static async Task<IFileSystem> Create(string fname, BaseUserSettings settings, string pluginanme, string userauthorization)
         {
-            AmazonFileSystem am=new AmazonFileSystem(provider);
-            am.FS = am;
-            am.OAuth.OAuthUrl = AmazonOAuth;
-            am.OAuth.EndPointUrl = AmazonEndpoint;
-            am.OAuth.OAuthLoginUrl = AmazonOAuthLogin;
-            am.OAuth.DefaultScopes = AmazonScopes;
-            bool userauth = !string.IsNullOrEmpty(userauthorization);
-            if (userauth)
+            AmazonFileSystem am = new AmazonFileSystem();
+            am.FsName = fname;
+            am.AppFriendlyName = settings.ClientAppFriendlyName;
+            if (string.IsNullOrEmpty(userauthorization) || (!(settings is LocalUserSettingWithCode)))
+            {
+                am.Status = Status.LoginRequired;
+                am.Error = "Tried to login with an empty usersettings";
+                return am;
+            }
+            if (!string.IsNullOrEmpty(userauthorization))
                 am.DeserializeAuth(userauthorization);
-            FileSystemResult r = await am.OAuth.Login(settings, pluginanme, userauth,false);
-            if (!r.IsOk)
-                return new FileSystemResult<AmazonFileSystem>(r.Error);
+            FileSystemResult r = await am.OAuth.InitAsync(settings);
+            if (r.Status != Status.Ok)
+            {
+                r.CopyErrorTo(am);
+                return am;
+            }
             r = await am.CheckExpirations();
-            if (!r.IsOk)
-                return new FileSystemResult<AmazonFileSystem>(r.Error);
+            if (r.Status != Status.Ok)
+            {
+                r.CopyErrorTo(am);
+                return am;
+            }
             string url = AmazonRoot.FormatRest(am.OAuth.EndPoint.MetadataUrl);
             FileSystemResult<dynamic> fr = await am.List(url);
-            if (!fr.IsOk)
-                return new FileSystemResult<AmazonFileSystem>(fr.Error);
+            if (fr.Status != Status.Ok)
+            {
+                fr.CopyErrorTo(am);
+                return am;
+            }
             foreach (dynamic v in fr.Result)
             {
                 if (v.kind == "FOLDER")
@@ -84,25 +93,29 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                     am.SetData(JsonConvert.SerializeObject(v));
                     am.FsName = fname;
                     await am.PopulateAsync();
-                    return new FileSystemResult<AmazonFileSystem>(am);
+                    return am;
                 }
             }
-            return new FileSystemResult<AmazonFileSystem>("Amazon Root directory not found");
+            am.Status = Status.NotFound;
+            am.Error = "Amazon Root directory not found";
+            return am;
         }
 
-        public async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        public override async Task<FileSystemSizes> QuotaAsync()
         {
             string url = AmazonQuota.FormatRest(OAuth.EndPoint.MetadataUrl);
             FileSystemResult<Json.Quota> cl = await FS.OAuth.CreateMetadataStream<Json.Quota>(url);
-            if (!cl.IsOk)
-                return new FileSystemResult<FileSystemSizes>(cl.Error);
+            if (cl.Status != Status.Ok)
+            {
+                return new FileSystemSizes { Status=cl.Status, Error=cl.Error };
+            }
             Sizes = new FileSystemSizes
             {
                 AvailableSize = cl.Result.available,
                 TotalSize = cl.Result.quota,
                 UsedSize = cl.Result.quota - cl.Result.available
             };
-            return new FileSystemResult<FileSystemSizes>(Sizes);
+            return Sizes;
         }
 
 
@@ -113,6 +126,9 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             OAuth.EndPoint = d.EndPoint;
         }
 
-
+        Task<IObject> IFileSystem.ResolveAsync(string path)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

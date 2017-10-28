@@ -2,14 +2,17 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using Stream = System.IO.Stream;
-using MemoryStream = System.IO.MemoryStream;
+#if PRILONGPATH
 using Path = Pri.LongPath.Path;
+#else
+using System.IO;
+#endif
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web;
 
 namespace NutzCode.CloudFileSystem
 {
-    public abstract class BaseObject
+    public abstract class BaseObject 
     {
 
         private string _parentpath;
@@ -18,8 +21,11 @@ namespace NutzCode.CloudFileSystem
         public virtual string Metadata { get; private set; }
         public virtual string MetadataMime { get; private set; }
 
+        public Status Status { get; set; }
+        public string Error { get; set; }
 
-        private IDirectory _parent = null;
+
+        private IDirectory _parent;
 
         public IDirectory Parent
         {
@@ -193,7 +199,7 @@ namespace NutzCode.CloudFileSystem
 
                 if (!string.IsNullOrEmpty(_parentpath))
                 {
-                    return _parentpath + System.IO.Path.DirectorySeparatorChar + name;
+                    return _parentpath + Path.DirectorySeparatorChar + name;
                 }
                 return name;
             }

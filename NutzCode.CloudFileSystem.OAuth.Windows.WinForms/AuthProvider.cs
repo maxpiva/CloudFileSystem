@@ -21,11 +21,11 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WinForms
                 {
                     r.Code = l.Code;
                     r.Scopes = l.Scopes;
-                    r.HasError = false;
+                    r.Status = Status.Ok;
                 }
                 else
                 {
-                    r.HasError = true;
+                    r.Status = Status.LoginRequired;
                     r.ErrorString = "Unable to login";
                 }
             }, new CancellationToken(), TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());

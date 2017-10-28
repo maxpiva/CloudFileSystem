@@ -6,7 +6,6 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class Json
-
     {
 
         public class Metadata

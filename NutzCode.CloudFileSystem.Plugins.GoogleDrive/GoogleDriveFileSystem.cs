@@ -14,7 +14,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         internal static List<string> GoogleScopes = new List<string> { "https://www.googleapis.com/auth/drive" };
         internal const string GoogleQuota = "https://www.googleapis.com/drive/v2/about";
 
-        internal bool AckAbuse = false;
+        internal bool AckAbuse;
 
         internal OAuth OAuth;
         internal DirectoryCache.DirectoryCache Refs = new DirectoryCache.DirectoryCache(CloudFileSystemPluginFactory.DirectoryTreeCacheSize);
@@ -22,9 +22,10 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
         public SupportedFlags Supports { get; } = SupportedFlags.MD5 | SupportedFlags.Assets | SupportedFlags.Properties;
         
-        public GoogleDriveFileSystem(IOAuthProvider provider) : base(null)
+        public GoogleDriveFileSystem() : base(null)
         {
-            OAuth=new OAuth(provider);
+            OAuth=new OAuth(GoogleOAuth, GoogleOAuth,null);
+            FS = this;
         }
 
         public string GetUserAuthorization()
@@ -32,35 +33,42 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
             return JsonConvert.SerializeObject(OAuth.Token);
         }
-        public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
+        public Task<IObject> ResolveAsync(string path)
         {
-            return await Refs.ObjectFromPath(this, path);
+            return Refs.ObjectFromPath(this, path);
         }
-
-        public static async Task<FileSystemResult<GoogleDriveFileSystem>> Create(string fname, IOAuthProvider provider, Dictionary<string, object> settings, string pluginanme, string userauthorization = null)
+        public static async Task<IFileSystem> Create(string fname, BaseUserSettings settings, string pluginanme, string userauthorization)
         {
-            GoogleDriveFileSystem am = new GoogleDriveFileSystem(provider);
-            am.FS = am;
+            GoogleDriveFileSystem am = new GoogleDriveFileSystem();
             am.FsName = fname;
-            am.OAuth.OAuthUrl = GoogleOAuth;
-            am.OAuth.EndPointUrl = null;
-            am.OAuth.OAuthLoginUrl = GoogleOAuthLogin;
-            am.OAuth.DefaultScopes = GoogleScopes;
-            bool userauth = !string.IsNullOrEmpty(userauthorization);
-            if (userauth)
+            am.AckAbuse = settings.AcknowledgeAbuse;
+            if (string.IsNullOrEmpty(userauthorization) || (!(settings is LocalUserSettingWithCode)))
+            {
+                am.Status = Status.LoginRequired;
+                am.Error = "Tried to login with an empty usersettings";
+                return am;
+            }
+            if (!string.IsNullOrEmpty(userauthorization))
                 am.DeserializeAuth(userauthorization);
-            FileSystemResult r = await am.OAuth.Login(settings, pluginanme, userauth,false);
-            if (!r.IsOk)
-                return new FileSystemResult<GoogleDriveFileSystem>(r.Error);
+            FileSystemResult r = await am.OAuth.InitAsync(settings);
+            if (r.Status != Status.Ok)
+            {
+                r.CopyErrorTo(am);
+                return am;
+            }
             r = await am.OAuth.MayRefreshToken();
-            if (!r.IsOk)
-                return new FileSystemResult<GoogleDriveFileSystem>(r.Error);
+            if (r.Status!=Status.Ok)
+            {
+                r.CopyErrorTo(am);
+                return am;
+            }
             r = await am.PopulateAsync();
-            if (!r.IsOk)
-                return new FileSystemResult<GoogleDriveFileSystem>(r.Error);
-            return new FileSystemResult<GoogleDriveFileSystem>(am);
+            if (r.Status != Status.Ok)
+                r.CopyErrorTo(am);
+            return am;
         }
 
+     
         public void DeserializeAuth(string auth)
         {
             OAuth.Token = JsonConvert.DeserializeObject<Token>(auth);
@@ -75,11 +83,11 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return 0;
         }
 
-        public async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        public override async Task<FileSystemSizes> QuotaAsync()
         {
             FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStream<ExpandoObject>(GoogleQuota);
-            if (!cl.IsOk)
-                return new FileSystemResult<FileSystemSizes>(cl.Error);
+            if (cl.Status != Status.Ok)
+                return new FileSystemSizes { Status = cl.Status, Error = cl.Error};
             IDictionary<string, object> dic = cl.Result;
             Sizes = new FileSystemSizes();
             if (dic.ContainsKey("quotaBytesTotal"))
@@ -88,7 +96,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 Sizes.UsedSize = ParseLong(dic["quotaBytesUsed"]);
             if (dic.ContainsKey("quotaBytesUsedAggregate"))
                 Sizes.AvailableSize= Sizes.TotalSize-ParseLong(dic["quotaBytesUsedAggregate"]);
-            return new FileSystemResult<FileSystemSizes>(Sizes);
+            return Sizes;
         }
 
     }

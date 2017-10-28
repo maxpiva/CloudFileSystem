@@ -1,96 +1,41 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{2A705C96-21D4-4061-876F-1BB954E39D25}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NutzCode.CloudFileSystem.Plugins.LocalFileSystem</RootNamespace>
-    <AssemblyName>NutzCode.CloudFileSystem.Plugins.LocalFileSystem</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
+    <Version>1.0.0.0</Version>
+    <Company>NutzCode</Company>
+    <Description>Local FileSystem plugin for NutzCode CloudFileSystem</Description>
+    <Copyright>Copyright (c) 2017 Máximo Piva</Copyright>
+    <PackageProjectUrl></PackageProjectUrl>
+    <PackageIconUrl></PackageIconUrl>
+    <RepositoryUrl>https://github.com/maxpiva/CloudFileSystem</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Cloud FileSystem Plugins Local</PackageTags>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0'">
+    <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net47'">
+    <DefineConstants>NET47;NETFULL;PRILONGPATH</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MimeTypeMap.List, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\MimeTypeMap.List.1.1.0\lib\MimeTypeMap.List.dll</HintPath>
-    </Reference>
-    <Reference Include="Pri.LongPath, Version=2.0.45.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Pri.LongPath.2.0.45\lib\net45\Pri.LongPath.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.4.0" />
+    <PackageReference Include="Pri.LongPath" Version="2.0.45" Condition=" '$(TargetFramework)' == 'net47'" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DirectoryImplementation.cs" />
-    <Compile Include="LocalCloudPlugin.cs" />
-    <Compile Include="LocalDirectory.cs" />
-    <Compile Include="LocalDrive.cs" />
-    <Compile Include="LocalFile.cs" />
-    <Compile Include="LocalFileSystem.cs" />
-    <Compile Include="LocalObject.cs" />
-    <Compile Include="LocalRoot.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
+    <ProjectReference Include="..\NutzCode.CloudFileSystem\NutzCode.CloudFileSystem.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NutzCode.CloudFileSystem\NutzCode.CloudFileSystem.csproj">
-      <Project>{29861d1a-968c-49ca-a637-88b391aa5063}</Project>
-      <Name>NutzCode.CloudFileSystem</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\NutzCode.Libraries.Web\NutzCode.Libraries.Web.csproj">
-      <Project>{865c8b13-eb43-439e-9d69-ce7b54dca4ff}</Project>
-      <Name>NutzCode.Libraries.Web</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
-    <None Include="Resources\Image48x48png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Properties\Resources.resx">
+    <EmbeddedResource Update="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>

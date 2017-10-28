@@ -10,16 +10,24 @@ namespace NutzCode.CloudFileSystem
 {
     public static class SyncExtensions
     {
-        public static FileSystemResult<IFileSystem> Init(this ICloudPlugin plugin, string filesystemname, IOAuthProvider oAuthProvider, Dictionary<string, object> settings, string userauthorization = null)
+        public static IFileSystem Init(this ICloudPlugin plugin, string filesystemname, LocalUserSettings settings, string userauthorization)
         {
-            return Task.Run(async()=>await plugin.InitAsync(filesystemname,oAuthProvider,settings,userauthorization)).Result;
+            return Task.Run(async () => await plugin.InitAsync(filesystemname, settings, userauthorization)).Result;
         }
-        public static FileSystemResult<FileSystemSizes> Quota(this IDirectory filesys)
+        public static IFileSystem Init(this ICloudPlugin plugin, string filesystemname, ProxyUserSettings settings, string userauthorization)
+        {
+            return Task.Run(async () => await plugin.InitAsync(filesystemname, settings, userauthorization)).Result;
+        }
+        public static IFileSystem Init(this ICloudPlugin plugin, string filesystemname, LocalUserSettingWithCode settings)
+        {
+            return Task.Run(async () => await plugin.InitAsync(filesystemname, settings)).Result;
+        }
+        public static FileSystemSizes Quota(this IDirectory filesys)
         {
             return Task.Run(async () => await filesys.QuotaAsync()).Result;
         }
 
-        public static FileSystemResult<IObject> Resolve(this IFileSystem filesys, string path)
+        public static IObject Resolve(this IFileSystem filesys, string path)
         {
             return Task.Run(async () => await filesys.ResolveAsync(path)).Result;
         }
@@ -27,32 +35,26 @@ namespace NutzCode.CloudFileSystem
         public static FileSystemResult Move(this IObject obj, IDirectory destination)
         {
             return Task.Run(async () => await obj.MoveAsync(destination)).Result;
-
         }
         public static FileSystemResult Copy(this IObject obj, IDirectory destination)
         {
             return Task.Run(async () => await obj.CopyAsync(destination)).Result;
-
         }
         public static FileSystemResult Rename(this IObject obj, string newname)
         {
             return Task.Run(async () => await obj.RenameAsync(newname)).Result;
-
         }
         public static FileSystemResult Touch(this IObject obj)
         {
             return Task.Run(async () => await obj.TouchAsync()).Result;
-
         }
         public static FileSystemResult Delete(this IObject obj, bool skipTrash)
         {
             return Task.Run(async () => await obj.DeleteAsync(skipTrash)).Result;
-
         }
-        public static FileSystemResult<IFile> CreateAsset(this IObject obj, string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public static IFile CreateAsset(this IObject obj, string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             return Task.Run(async () => await obj.CreateAssetAsync(name,readstream,token,progress,properties), token).Result;
-
         }
         public static FileSystemResult WriteMetadata(this IObject obj, ExpandoObject metadata)
         {
@@ -68,12 +70,12 @@ namespace NutzCode.CloudFileSystem
             return Task.Run(async () => await obj.SavePropertyAsync(property)).Result;
         }
 
-        public static FileSystemResult<IFile> CreateFile(this IDirectory directory, string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public static IFile CreateFile(this IDirectory directory, string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             return Task.Run(async () => await directory.CreateFileAsync(name,readstream,token, progress, properties), token).Result;
         }
 
-        public static FileSystemResult<IDirectory> CreateDirectory(this IDirectory directory, string name, Dictionary<string, object> properties)
+        public static IDirectory CreateDirectory(this IDirectory directory, string name, Dictionary<string, object> properties)
         {
             return Task.Run(async () => await directory.CreateDirectoryAsync(name,properties)).Result;
         }
@@ -92,7 +94,7 @@ namespace NutzCode.CloudFileSystem
 
         public static FileSystemResult OverwriteFile(this IFile file, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
-            return Task.Run(async () => await file.OverwriteFileAsync(readstream,token, progress, properties)).Result;
+            return Task.Run(async () => await file.OverwriteFileAsync(readstream,token, progress, properties), token).Result;
         }
 
 

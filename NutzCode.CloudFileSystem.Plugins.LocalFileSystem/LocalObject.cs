@@ -5,14 +5,14 @@ using System.Dynamic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
-using FileInfo = Pri.LongPath.FileInfo;
+#if PRILONGPATH
+using Pri.LongPath;
+using DirectoryInfo=System.IO.DirectoryInfo;
+using FileInfo=System.IO.FileInfo;
+#else
+using System.IO;
+#endif
 using Stream = System.IO.Stream;
-using FileAttributes = System.IO.FileAttributes;
 using FileMode = System.IO.FileMode;
 using FileAccess = System.IO.FileAccess;
 
@@ -44,7 +44,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult<IFile>> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<IFile> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             throw new NotSupportedException();
         }
@@ -84,7 +84,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             FS = fs;
         }
 
-        internal async Task<FileSystemResult<IFile>> InternalCreateFile(DirectoryImplementation dir, string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        internal async Task<IFile> InternalCreateFile(DirectoryImplementation dir, string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             if (properties == null)
                 properties = new Dictionary<string, object>();
@@ -119,15 +119,14 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 {
                     // ignored
                 }
-                return new FileSystemResult<IFile>("Transfer canceled");
+                return new LocalFile(null, FS) { Status = Status.Canceled,Error="Transfer canceled"};
             }
             FileInfo finfo = new FileInfo(path);
             if (properties.Any(a => a.Key.Equals("ModifiedDate", StringComparison.InvariantCultureIgnoreCase)))
                 finfo.LastWriteTime = (DateTime)properties.First(a => a.Key.Equals("ModifiedDate", StringComparison.InvariantCultureIgnoreCase)).Value;
             if (properties.Any(a => a.Key.Equals("CreatedDate", StringComparison.InvariantCultureIgnoreCase)))
                 finfo.CreationTime = (DateTime)properties.First(a => a.Key.Equals("CreatedDate", StringComparison.InvariantCultureIgnoreCase)).Value;
-            LocalFile f = new LocalFile(finfo, FS);
-            return new FileSystemResult<IFile>(f);
+            return new LocalFile(finfo, FS);
         }
 
         public bool TryGetMetadataValue<T>(string prop, out T value)
@@ -144,5 +143,8 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             }
             return false;
         }
+
+        public Status Status { get; set; }
+        public string Error { get; set; }
     }
 }

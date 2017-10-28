@@ -1,15 +1,14 @@
 ﻿using System;
-
 using System.Linq;
 using System.Threading.Tasks;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
-using FileInfo = Pri.LongPath.FileInfo;
-using Stream = System.IO.Stream;
-using FileAttributes = System.IO.FileAttributes;
+#if PRILONGPATH
+using Pri.LongPath;
+using DirectoryInfo=System.IO.DirectoryInfo;
+using FileInfo=System.IO.FileInfo;
+#else
+using System.IO;
+#endif
+
 using DriveInfo = System.IO.DriveInfo;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
@@ -60,35 +59,35 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public override async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
-            return await Task.FromResult(new FileSystemResult("Unable to move a root drive"));
+            return await Task.FromResult(new FileSystemResult(Status.ArgumentError,"Unable to move a root drive"));
         }
 
         public override async Task<FileSystemResult> CopyAsync(IDirectory destination)
         {
-            return await Task.FromResult(new FileSystemResult("Unable to copy a root drive"));
+            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to copy a root drive"));
         }
 
         public override async Task<FileSystemResult> RenameAsync(string newname)
         {
-            return await Task.FromResult(new FileSystemResult("Unable to rename a drive"));
+            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to rename a drive"));
         }
 
         public override async Task<FileSystemResult> TouchAsync()
         {
-            return await Task.FromResult(new FileSystemResult("Unable to touch a drive"));
+            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to touch a drive"));
         }
 
         public override async Task<FileSystemResult> DeleteAsync(bool skipTrash)
         {
-            return await Task.FromResult(new FileSystemResult("Unable to delete a drive"));
+            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to delete a drive"));
         }
-        public override async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        public override async Task<FileSystemSizes> QuotaAsync()
         {
             FileSystemSizes Sizes = new FileSystemSizes();
             Sizes.AvailableSize += Drive.AvailableFreeSpace;
             Sizes.UsedSize += Drive.TotalSize - Drive.AvailableFreeSpace;
             Sizes.TotalSize += Drive.TotalSize;
-            return await Task.FromResult(new FileSystemResult<FileSystemSizes>(Sizes));
+            return await Task.FromResult(Sizes);
         }
     }
 }

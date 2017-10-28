@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Windows.Forms;
 
@@ -26,7 +28,7 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WinForms
             webView.Navigated += WebView_Navigated;
             webView.Navigating += WebView_Navigating;
             string responsetype = "code";
-            string url = string.Format(AuthUrl, HttpUtility.UrlEncode(clientid),HttpUtility.UrlEncode(string.Join(" ",scopes)),HttpUtility.UrlEncode(responsetype),HttpUtility.UrlEncode(redirect),authurl);
+            string url = string.Format(AuthUrl, WebUtility.UrlEncode(clientid), WebUtility.UrlEncode(string.Join(" ",scopes)), WebUtility.UrlEncode(responsetype), WebUtility.UrlEncode(redirect),authurl);
             webView.Navigate(new Uri(url));
             webView.Dock=DockStyle.Fill;
             Controls.Add(webView);
@@ -47,7 +49,33 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WinForms
             CheckUrl(webView.Url.ToString());
         }
 
- 
+        public static NameValueCollection ParseQueryString(string s)
+        {
+            NameValueCollection nvc = new NameValueCollection();
+
+            // remove anything other than query string from url
+            if (s.Contains("?"))
+            {
+                s = s.Substring(s.IndexOf('?') + 1);
+            }
+
+            foreach (string vp in Regex.Split(s, "&"))
+            {
+                string[] singlePair = Regex.Split(vp, "=");
+                if (singlePair.Length == 2)
+                {
+                    nvc.Add(singlePair[0], singlePair[1]);
+                }
+                else
+                {
+                    // only one key with no value specified in query string
+                    nvc.Add(singlePair[0], string.Empty);
+                }
+            }
+
+            return nvc;
+        }
+
         private void CheckUrl(string url)
         {
             if (url.Contains("code="))
@@ -57,7 +85,7 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WinForms
                 string n = url.Substring(a);
                 if (n.EndsWith("/"))
                 n = n.Substring(0, n.Length - 1);
-                NameValueCollection col = HttpUtility.ParseQueryString(n);
+                NameValueCollection col = ParseQueryString(n);
                 foreach (string s in col.Keys)
                 {
                     switch (s)

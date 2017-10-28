@@ -10,12 +10,12 @@ namespace NutzCode.CloudFileSystem
     {
         List<IDirectory> Directories { get; }
         List<IFile> Files { get; }
-        Task<FileSystemResult<IFile>> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties);
-        Task<FileSystemResult<IDirectory>> CreateDirectoryAsync(string name, Dictionary<string, object> properties);
+        Task<IFile> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties);
+        Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties);
         bool IsPopulated { get; }
         bool IsRoot { get; }
         Task<FileSystemResult> PopulateAsync();
-        Task<FileSystemResult<FileSystemSizes>> QuotaAsync();
+        Task<FileSystemSizes> QuotaAsync();
 
     }
 }

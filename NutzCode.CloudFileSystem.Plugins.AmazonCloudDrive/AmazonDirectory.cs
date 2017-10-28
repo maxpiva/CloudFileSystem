@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using Stream = System.IO.Stream;
-using MemoryStream = System.IO.MemoryStream;
-
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -42,8 +40,8 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             do
             {
                 FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStream<ExpandoObject>(url);
-                if (!cl.IsOk)
-                    return new FileSystemResult<dynamic>(cl.Error);
+                if (cl.Status!=Status.Ok)
+                    return new FileSystemResult<dynamic>(cl.Status, cl.Error);
                 dynamic obj = cl.Result;
                 count = obj.data.Count;
                 if (count > 0)
@@ -67,12 +65,12 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             using (await _populateLock.LockAsync())
             {
                 FileSystemResult r = await FS.CheckExpirations();
-                if (!r.IsOk)
+                if (r.Status!=Status.Ok)
                     return r;
                 string url = AmazonList.FormatRest(FS.OAuth.EndPoint.MetadataUrl, Id);
                 FileSystemResult<dynamic> fr = await List(url);
-                if (!fr.IsOk)
-                    return new FileSystemResult(fr.Error);
+                if (r.Status != Status.Ok)
+                    return r;
                 IntFiles = new List<AmazonFile>();
                 List<IDirectory> dirlist = new List<IDirectory>();
                 foreach (dynamic v in fr.Result)
@@ -101,7 +99,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             }           
         }
 
-        public Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        public virtual Task<FileSystemSizes> QuotaAsync()
         {
             return FS.QuotaAsync();
         }
@@ -112,19 +110,19 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             IsPopulated = false;
         }
 
-        public async Task<FileSystemResult<IFile>> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<IFile> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
 #if DEBUG || EXPERIMENTAL
-            FileSystemResult<IFile> f=await InternalCreateFile(name,"FILE",false, this,readstream,token,progress, properties);
-            if (f.IsOk)
-                IntFiles.Add((AmazonFile)f.Result);
+            IFile f=await InternalCreateFile(name,"FILE",false, this,readstream,token,progress, properties);
+            if (f.Status!=Status.Ok)
+                IntFiles.Add((AmazonFile)f);
             return f;
 #else
             throw new NotSupportedException();
 #endif
         }
 
-        public async Task<FileSystemResult<IDirectory>> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
+        public async Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
         {
             if (properties == null)
                 properties = new Dictionary<string, object>();
@@ -142,16 +140,16 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             j.kind = "FOLDER";
             j.parents = new List<string> { Id };
             string url = AmazonCreateDirectory.FormatRest(FS.OAuth.EndPoint.MetadataUrl,Guid.NewGuid().ToString().Replace("-",string.Empty));
-            FileSystemResult<string> ex=await FS.OAuth.CreateMetadataStream<string>(url,Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j,Newtonsoft.Json.Formatting.None,new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })), "application/json");
-            if (ex.IsOk)
+            FileSystemResult<string> ex=await FS.OAuth.CreateMetadataStream<string>(url,Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j,Formatting.None,new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })), "application/json");
+            if (ex.Status==Status.Ok)
             {
-                AmazonDirectory dir = new AmazonDirectory(this.FullName, FS) { Parent = this };
+                AmazonDirectory dir = new AmazonDirectory(FullName, FS) { Parent = this };
                 dir.SetData(ex.Result);
                 FS.Refs[dir.FullName] = dir;
                 IntDirectories.Add(dir);
-                return new FileSystemResult<IDirectory>(dir);
+                return dir;
             }
-            return new FileSystemResult<IDirectory>(ex.Error);
+            return new AmazonDirectory(FullName, FS) { Parent = this, Status=ex.Status, Error = ex.Error};
         }
 
         public override long Size { get; } = 0;
