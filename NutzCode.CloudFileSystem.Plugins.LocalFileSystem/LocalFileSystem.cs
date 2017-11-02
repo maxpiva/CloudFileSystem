@@ -97,14 +97,19 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 // Last ditch effort to catch errors, this needs to always succeed.
                 return new FileSystemResult<IObject>(e.Message);
             }
-            FileAttributes attr = File.GetAttributes(path);
+            if (File.Exists(path) || Directory.Exists(path))
+            {
+                FileAttributes attr = File.GetAttributes(path);
 
-            // It's a directory
-            if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
-                return new FileSystemResult<IObject>(new LocalDirectory(new DirectoryInfo(path), FS));
+                // It's a directory
+                if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                    return new FileSystemResult<IObject>(new LocalDirectory(new DirectoryInfo(path), FS));
 
-            // It's a file
-            return new FileSystemResult<IObject>(new LocalFile(new FileInfo(path), FS));
+                // It's a file
+                return new FileSystemResult<IObject>(new LocalFile(new FileInfo(path), FS));
+            }
+
+            return new FileSystemResult<IObject>("Not found");
 
             return await Refs.ObjectFromPath(this, path) ?? new FileSystemResult<IObject>("Not found");
         }
