@@ -1,15 +1,11 @@
 ﻿﻿using System;
- using System.Collections.Generic;
  using System.Linq;
 using System.Threading.Tasks;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
+ using Directory = Pri.LongPath.Directory;
 using DirectoryInfo = Pri.LongPath.DirectoryInfo;
 using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
-using FileInfo = Pri.LongPath.FileInfo;
-using Stream = System.IO.Stream;
-using FileAttributes = System.IO.FileAttributes;
+ using FileInfo = Pri.LongPath.FileInfo;
+ using FileAttributes = System.IO.FileAttributes;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
@@ -86,7 +82,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                     string share = path.Substring(0, idx);
                     if (!Directory.Exists(share))
                         return new FileSystemResult<IObject>("Not found");
-                    if (FS.Directories.All(a => !a.FullName.Equals(share, StringComparison.InvariantCultureIgnoreCase)))
+                    if (!FS.Directories.Any(a => a.FullName.Equals(share, StringComparison.InvariantCultureIgnoreCase)))
                         FS.AddUncPath(share);
                     path = path.Replace(share, share.Replace('\\', '*'));
                     path = path.Replace(share, share.Replace('/', '*'));
@@ -110,8 +106,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             }
 
             return new FileSystemResult<IObject>("Not found");
-
-            return await Refs.ObjectFromPath(this, path) ?? new FileSystemResult<IObject>("Not found");
         }
 
         public FileSystemSizes Sizes { get; private set; }

@@ -6,13 +6,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
 using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
 using FileInfo = Pri.LongPath.FileInfo;
 using Stream = System.IO.Stream;
-using FileAttributes = System.IO.FileAttributes;
 using FileMode = System.IO.FileMode;
 using FileAccess = System.IO.FileAccess;
 

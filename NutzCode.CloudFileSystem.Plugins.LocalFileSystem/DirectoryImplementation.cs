@@ -6,24 +6,35 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
 using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
 using FileInfo = Pri.LongPath.FileInfo;
 using Stream = System.IO.Stream;
-using FileAttributes = System.IO.FileAttributes;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
     public abstract class  DirectoryImplementation : LocalObject, IDirectory, IOwnDirectory<LocalFile,DirectoryImplementation>
     {
-        public List<DirectoryImplementation> IntDirectories { get; set; }=new List<DirectoryImplementation>();
-        public List<LocalFile> IntFiles { get; set; }=new List<LocalFile>();
+        public List<DirectoryImplementation> IntDirectories
+        {
+            get => GetDirectories().Select(a => new LocalDirectory(a, FS)).Cast<DirectoryImplementation>().ToList();
+            set
+            {
+                return;
+            }
+        }
+
+        public List<LocalFile> IntFiles
+        {
+            get => GetFiles().Select(a => new LocalFile(a, FS)).ToList();
+            set
+            {
+                return;
+            }
+        }
 
 
-        public List<IDirectory> Directories => IntDirectories.Cast<IDirectory>().ToList();
-        public List<IFile> Files => IntFiles.Cast<IFile>().ToList();
+        public List<IDirectory> Directories => GetDirectories().Select(a => new LocalDirectory(a, FS)).Cast<IDirectory>().ToList();
+        public List<IFile> Files => GetFiles().Select(a => new LocalFile(a, FS)).Cast<IFile>().ToList();
 
         public abstract void CreateDirectory(string name);
         public abstract DirectoryInfo[] GetDirectories();
@@ -54,8 +65,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                     dinfo.CreationTime = (DateTime)properties.First(a => a.Key.Equals("CreatedDate", StringComparison.InvariantCultureIgnoreCase)).Value;
                 LocalDirectory f = new LocalDirectory(dinfo,FS);
                 f.Parent = this;
-                FS.Refs[f.FullName] = f;
-                IntDirectories.Add(f);
                 return await Task.FromResult(new FileSystemResult<IDirectory>(f));
 
             }
@@ -70,9 +79,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public virtual async Task<FileSystemResult> PopulateAsync()
         {
-            IntDirectories = GetDirectories().Select(a => new LocalDirectory(a,FS) {Parent = this}).Cast<DirectoryImplementation>().ToList();
-            IntDirectories.ForEach(a=>FS.Refs[a.FullName]=a);
-            IntFiles = GetFiles().Select(a => new LocalFile(a,FS) { Parent=this }).ToList();
             IsPopulated = true;
             return await Task.FromResult(new FileSystemResult());
         }

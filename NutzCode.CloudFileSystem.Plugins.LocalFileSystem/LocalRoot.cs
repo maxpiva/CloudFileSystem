@@ -4,20 +4,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
 using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
 using FileInfo = Pri.LongPath.FileInfo;
 using Stream = System.IO.Stream;
-using FileAttributes = System.IO.FileAttributes;
 using DriveInfo = System.IO.DriveInfo;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
     public class LocalRoot : DirectoryImplementation
     {
+        public override bool IsPopulated { get; internal set; } = true;
+
+        public new List<DirectoryImplementation> IntDirectories
+        {
+            get
+            {
+                var dirs = DriveInfo.GetDrives().Select(a => new LocalDrive(a,FS) {Parent=this }).Cast<DirectoryImplementation>().ToList();
+                dirs.AddRange(UncPaths.Select(a=>new LocalDirectory(new DirectoryInfo(a),FS)));
+                return dirs;
+            }
+            set
+            {
+                return;
+            }
+        }
+
         // ReSharper disable once InconsistentNaming
         internal string fname;
 
@@ -61,16 +72,12 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public override async Task<FileSystemResult> PopulateAsync()
         {
-            IntDirectories = DriveInfo.GetDrives().Select(a => new LocalDrive(a,FS) {Parent=this }).Cast<DirectoryImplementation>().ToList();
-            IntDirectories.AddRange(UncPaths.Select(a=>new LocalDirectory(new DirectoryInfo(a),FS)));
-            IsPopulated = true;
             return await Task.FromResult(new FileSystemResult());
         }
 
         internal void AddUncPath(string path)
         {
             UncPaths.Add(path);
-            IntDirectories.Add(new LocalDirectory(new DirectoryInfo(path),FS));
         }
         public override async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {

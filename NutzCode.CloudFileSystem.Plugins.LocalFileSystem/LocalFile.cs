@@ -4,11 +4,8 @@ using System.Collections.Generic;
  using System.Threading;
 using System.Threading.Tasks;
 using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
-using FileInfo = Pri.LongPath.FileInfo;
+ using File = Pri.LongPath.File;
+ using FileInfo = Pri.LongPath.FileInfo;
 using Stream = System.IO.Stream;
 using FileAttributes = System.IO.FileAttributes;
 
@@ -102,9 +99,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                     return new FileSystemResult("Root cannot be destination");
                 string destname = Path.Combine(to.FullName, Name);
                 File.Move(FullName, destname);
-                ((DirectoryImplementation) Parent).IntFiles.Remove(this);
-                to.IntFiles.Add(this);
-                this.Parent = to;
                 file = new FileInfo(destname);
                 return await Task.FromResult(new FileSystemResult());
             }
@@ -129,7 +123,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 FileInfo finfo = new FileInfo(destname);
                 LocalFile local = new LocalFile(finfo, FS);
                 local.Parent = destination;
-                to.IntFiles.Add(local);
                 return await Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)
@@ -174,7 +167,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             try
             {
                 file.Delete();
-                ((DirectoryImplementation) Parent).IntFiles.Remove(this);
                 return await Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)
