@@ -22,6 +22,8 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public override ObjectAttributes Attributes => ObjectAttributes.Directory;
 
         public override string FullName => Name;
+
+        public override bool IsEmpty => !Directory.EnumerateFileSystemEntries(FullName).Any();
         
         internal LocalDrive(DriveInfo d, LocalFileSystem fs) : base(fs)
         {

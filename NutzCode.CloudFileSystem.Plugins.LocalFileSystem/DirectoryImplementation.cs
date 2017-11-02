@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Pri.LongPath;
 using Path = Pri.LongPath.Path;
 using DirectoryInfo = Pri.LongPath.DirectoryInfo;
 using FileInfo = Pri.LongPath.FileInfo;
@@ -31,6 +32,8 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 return;
             }
         }
+
+        public abstract bool IsEmpty { get; }
 
 
         public List<IDirectory> Directories => GetDirectories().Select(a => new LocalDirectory(a, FS)).Cast<IDirectory>().ToList();

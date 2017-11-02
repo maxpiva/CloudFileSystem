@@ -31,7 +31,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         public bool IsRoot { get; internal set; } = false;
 
 
-
+        public bool IsEmpty => !(Directories.Any() || Files.Any());
 
 
 

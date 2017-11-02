@@ -19,6 +19,9 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public override DateTime? CreatedDate => _directory?.CreationTime;
         public override DateTime? LastViewed => _directory?.LastAccessTime;
 
+        public override bool IsEmpty => _directory?.FullName != null &&
+                                        !Directory.EnumerateFileSystemEntries(_directory.FullName).Any();
+
         public override ObjectAttributes Attributes
         {
             get

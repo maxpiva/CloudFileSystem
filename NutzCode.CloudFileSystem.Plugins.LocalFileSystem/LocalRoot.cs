@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Pri.LongPath;
 using DirectoryInfo = Pri.LongPath.DirectoryInfo;
 using FileInfo = Pri.LongPath.FileInfo;
 using Stream = System.IO.Stream;
@@ -39,6 +40,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public override ObjectAttributes Attributes => ObjectAttributes.Directory;
         public override string FullName => fname;
+        public override bool IsEmpty => !Directory.EnumerateFileSystemEntries(FullName).Any();
 
         public override void CreateDirectory(string name)
         {
