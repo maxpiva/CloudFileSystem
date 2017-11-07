@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NutzCode.CloudFileSystem.OAuth2;
-using NutzCode.CloudFileSystem.Plugins.OneDrive.Models;
 
 namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 {
@@ -19,6 +18,11 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 
 
         internal DirectoryCache.DirectoryCache Refs = new DirectoryCache.DirectoryCache(CloudFileSystemPluginFactory.DirectoryTreeCacheSize);
+
+        public FileSystemResult<IObject> ResolveSynchronous(string path)
+        {
+            return ResolveAsync(path).Result;
+        }
 
         public SupportedFlags Supports => SupportedFlags.Assets | SupportedFlags.SHA1 | SupportedFlags.Properties;
 
@@ -70,14 +74,14 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
                 return new FileSystemResult<OneDriveFileSystem>(r.Error);
             r = await am.QuotaAsync();
             if (!r.IsOk)
-                return new FileSystemResult<OneDriveFileSystem>(r.Error);                
+                return new FileSystemResult<OneDriveFileSystem>(r.Error);
             r = await am.PopulateAsync();
             if (!r.IsOk)
                 return new FileSystemResult<OneDriveFileSystem>(r.Error);
             return new FileSystemResult<OneDriveFileSystem>(am);
         }
 
-        public async Task<FileSystemResult<FileSystemSizes>> QuotaAsync() // In fact we read the drive
+        public new async Task<FileSystemResult<FileSystemSizes>> QuotaAsync() // In fact we read the drive
         {
             string url = OneDriveRoot.FormatRest(OneDriveUrl);
             FileSystemResult<dynamic> cl = await FS.OAuth.CreateMetadataStream<dynamic>(url);

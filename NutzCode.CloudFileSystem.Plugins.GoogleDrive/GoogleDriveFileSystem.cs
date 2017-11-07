@@ -20,8 +20,13 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         internal DirectoryCache.DirectoryCache Refs = new DirectoryCache.DirectoryCache(CloudFileSystemPluginFactory.DirectoryTreeCacheSize);
         public FileSystemSizes Sizes { get; private set; }
 
+        public FileSystemResult<IObject> ResolveSynchronous(string path)
+        {
+            return ResolveAsync(path).Result;
+        }
+
         public SupportedFlags Supports { get; } = SupportedFlags.MD5 | SupportedFlags.Assets | SupportedFlags.Properties;
-        
+
         public GoogleDriveFileSystem(IOAuthProvider provider) : base(null)
         {
             OAuth=new OAuth(provider);
@@ -34,7 +39,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         }
         public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
         {
-            return await Refs.ObjectFromPath(this, path);
+            return await Refs.ObjectFromPath(this, path) ?? new FileSystemResult<IObject>("Not found");
         }
 
         public static async Task<FileSystemResult<GoogleDriveFileSystem>> Create(string fname, IOAuthProvider provider, Dictionary<string, object> settings, string pluginanme, string userauthorization = null)
@@ -75,7 +80,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return 0;
         }
 
-        public async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        public new async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
         {
             FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStream<ExpandoObject>(GoogleQuota);
             if (!cl.IsOk)

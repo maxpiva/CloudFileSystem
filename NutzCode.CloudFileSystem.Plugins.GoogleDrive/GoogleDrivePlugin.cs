@@ -35,6 +35,6 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             if (settings.ContainsKey(AcknowledgeAbuse) && (settings[AcknowledgeAbuse] is bool))
                 f.AckAbuse = (bool)settings[AcknowledgeAbuse];
             return new FileSystemResult<IFileSystem>(f);
-        }        
+        }
     }
 }

@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
-
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NutzCode.CloudFileSystem.Plugins.OneDrive.Models;
-using Path = Pri.LongPath.Path;
 using Stream = System.IO.Stream;
 
 
@@ -74,7 +71,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             }
         }
 
-        
+
         public async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
             if (Parent == null)
@@ -233,7 +230,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             if (url.EndsWith("png", StringComparison.InvariantCultureIgnoreCase))
                 mime = "image/png";
             return new OneDriveThumbAsset(FullName, this.FS, name, url, width, height, mime);
-        }       
+        }
         private void SetAssets()
         {
             Assets.Clear();

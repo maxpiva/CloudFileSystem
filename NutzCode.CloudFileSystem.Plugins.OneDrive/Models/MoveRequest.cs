@@ -6,6 +6,6 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive.Models
     {
         [DataMember(Name = "parentReference", IsRequired = true)]
         public ItemReference ParentReference { get; set; }
- 
+
     }
 }

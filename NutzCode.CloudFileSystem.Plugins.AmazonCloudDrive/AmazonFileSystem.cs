@@ -22,6 +22,11 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
         internal DirectoryCache.DirectoryCache Refs=new DirectoryCache.DirectoryCache(CloudFileSystemPluginFactory.DirectoryTreeCacheSize);
 
+        public FileSystemResult<IObject> ResolveSynchronous(string path)
+        {
+            return ResolveAsync(path).Result;
+        }
+
         public SupportedFlags Supports => SupportedFlags.Assets | SupportedFlags.MD5 | SupportedFlags.Properties;
 
         private AmazonFileSystem(IOAuthProvider provider) : base(null)
@@ -51,7 +56,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
         public async Task<FileSystemResult<IObject>> ResolveAsync(string path)
         {
-            return await Refs.ObjectFromPath(this, path);
+            return await Refs.ObjectFromPath(this, path) ?? new FileSystemResult<IObject>("Not found");
         }
 
         public FileSystemSizes Sizes { get; private set; }
@@ -90,7 +95,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<AmazonFileSystem>("Amazon Root directory not found");
         }
 
-        public async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
+        public new async Task<FileSystemResult<FileSystemSizes>> QuotaAsync()
         {
             string url = AmazonQuota.FormatRest(OAuth.EndPoint.MetadataUrl);
             FileSystemResult<Json.Quota> cl = await FS.OAuth.CreateMetadataStream<Json.Quota>(url);

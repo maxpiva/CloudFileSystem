@@ -29,7 +29,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
         }
 
         public string MD5 => string.Empty;
-       
+
         public string SHA1
         {
             get

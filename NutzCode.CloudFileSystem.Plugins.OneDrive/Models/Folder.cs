@@ -14,18 +14,18 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive.Models
     [DataContract]
     public class Folder
     {
-    
+
         /// <summary>
         /// Gets or sets childCount.
         /// </summary>
         [DataMember(Name = "childCount", EmitDefaultValue = false, IsRequired = false)]
         public Int32? ChildCount { get; set; }
-    
+
         /// <summary>
         /// Gets or sets additional data.
         /// </summary>
         [JsonExtensionData(ReadData = true)]
         public IDictionary<string, object> AdditionalData { get; set; }
-    
+
     }
 }
