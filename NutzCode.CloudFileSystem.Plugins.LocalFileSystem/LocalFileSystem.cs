@@ -38,8 +38,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                         return new FileSystemResult<IObject>("Not found");
                     if (!FS.Directories.Any(a => a.FullName.Equals(share, StringComparison.InvariantCultureIgnoreCase)))
                         FS.AddUncPath(share);
-                    path = path.Replace(share, share.Replace('\\', '*'));
-                    path = path.Replace(share, share.Replace('/', '*'));
                 }
             }
             catch (Exception e)
