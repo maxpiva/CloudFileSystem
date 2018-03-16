@@ -8,7 +8,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
     public class OneDriveFileSystem : OneDriveRoot, IFileSystem
     {
         internal const string OneDriveOAuth = "https://login.live.com/oauth20_token.srf";
-        internal const string OneDriveOAuthLogin = "https://login.live.com/oauth20_desktop.srf";
+        internal const string OneDriveOAuthLogin = "https://login.live.com/oauth20_authorize.srf";
         public string OneDriveUrl = "https://api.onedrive.com/v1.0";
         internal static List<string> OneDriveScopes = new List<string> { "wl.signin", "onedrive.readwrite", "offline_access" };
 
