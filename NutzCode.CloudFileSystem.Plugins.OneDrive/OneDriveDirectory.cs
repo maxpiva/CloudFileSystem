@@ -73,7 +73,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             FileSystemResult r = await FS.OAuth.MayRefreshToken();
             if (!r.IsOk)
                 return r;
-            string url = ListChildrens.FormatRest(this is OneDriveRoot ? "root" : Id);
+            string url = ListChildrens.FormatRest(FS.OneDriveUrl, this is OneDriveRoot ? "root" : Id);
             FileSystemResult<dynamic> fr = await this.List(url);
             if (!fr.IsOk)
                 return new FileSystemResult(fr.Error);
@@ -81,7 +81,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             List<IDirectory> dirlist = new List<IDirectory>();
             foreach (dynamic v in fr.Result)
             {
-                if (v.folder != null)
+                if (((IDictionary<string, object>)v).ContainsKey("folder"))
                 {
                     OneDriveDirectory dir = new OneDriveDirectory(FullName, FS) { Parent = this };
                     dir.SetData(JsonConvert.SerializeObject(v));
