@@ -6,11 +6,7 @@ using MemoryStream = System.IO.MemoryStream;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
-#if PRILONGPATH
-using Pri.LongPath;
-#else
 using System.IO;
-#endif
 
 
 

@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 {
-    public class File 
+    public class File
     {
         [JsonProperty("alternateLink")]
         public virtual string AlternateLink { get; set; }
@@ -303,7 +303,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             public virtual int? Width { get; set; }
         }
 
-        public class Permission 
+        public class Permission
         {
             [JsonProperty("additionalRoles")]
             public virtual IList<string> AdditionalRoles { get; set; }
@@ -377,7 +377,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             }
         }
 
-        public class Property 
+        public class Property
         {
             [JsonProperty("etag")]
             public virtual string ETag { get; set; }
@@ -398,7 +398,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             public virtual string Visibility { get; set; }
         }
 
-        public class ParentReference 
+        public class ParentReference
         {
             public virtual string ETag { get; set; }
 

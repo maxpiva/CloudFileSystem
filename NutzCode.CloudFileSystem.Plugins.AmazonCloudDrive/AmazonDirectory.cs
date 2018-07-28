@@ -27,6 +27,8 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         public List<IDirectory> Directories => IntDirectories.Cast<IDirectory>().ToList();
         public List<IFile> Files => IntFiles.Cast<IFile>().ToList();
 
+        public bool IsEmpty => !(Directories.Any() || Files.Any());
+
 
         public bool IsPopulated { get; private set; }
         public bool IsRoot { get; internal set; } = false;

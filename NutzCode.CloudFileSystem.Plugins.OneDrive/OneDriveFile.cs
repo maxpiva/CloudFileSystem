@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web;
-#if PRILONGPATH
-using Pri.LongPath;
-#else
 using System.IO;
-#endif
 using Stream = System.IO.Stream;
 
 namespace NutzCode.CloudFileSystem.Plugins.OneDrive
@@ -33,7 +29,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
         }
 
         public string MD5 => string.Empty;
-       
+
         public string SHA1
         {
             get

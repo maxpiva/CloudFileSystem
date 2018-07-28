@@ -1,13 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-#if PRILONGPATH
-using Pri.LongPath;
-using DirectoryInfo=System.IO.DirectoryInfo;
-using FileInfo=System.IO.FileInfo;
-#else
 using System.IO;
-#endif
 using FileAttributes = System.IO.FileAttributes;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem

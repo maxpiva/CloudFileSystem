@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using Stream = System.IO.Stream;
-#if PRILONGPATH
-using Path = Pri.LongPath.Path;
-#else
 using System.IO;
-#endif
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web;
 

@@ -29,7 +29,7 @@ namespace NutzCode.CloudFileSystem
 
         public static IObject Resolve(this IFileSystem filesys, string path)
         {
-            return Task.Run(async () => await filesys.ResolveAsync(path)).Result;
+            return filesys.ResolveAsync(path).GetAwaiter().GetResult();
         }
 
         public static FileSystemResult Move(this IObject obj, IDirectory destination)

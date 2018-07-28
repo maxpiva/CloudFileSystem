@@ -126,9 +126,6 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             OAuth.EndPoint = d.EndPoint;
         }
 
-        Task<IObject> IFileSystem.ResolveAsync(string path)
-        {
-            throw new System.NotImplementedException();
-        }
+
     }
 }

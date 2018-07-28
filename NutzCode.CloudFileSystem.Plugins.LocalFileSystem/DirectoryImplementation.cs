@@ -4,13 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-#if PRILONGPATH
-using Pri.LongPath;
-using DirectoryInfo=System.IO.DirectoryInfo;
-using FileInfo=System.IO.FileInfo;
-#else
 using System.IO;
-#endif
 using Stream = System.IO.Stream;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
@@ -21,9 +15,11 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public List<DirectoryImplementation> IntDirectories { get; set; }=new List<DirectoryImplementation>();
         public List<LocalFile> IntFiles { get; set; }=new List<LocalFile>();
 
+       
 
-        public List<IDirectory> Directories => IntDirectories.Cast<IDirectory>().ToList();
-        public List<IFile> Files => IntFiles.Cast<IFile>().ToList();
+
+        public List<IDirectory> Directories => GetDirectories().Select(a => new LocalDirectory(a, FS)).Cast<IDirectory>().ToList();
+        public List<IFile> Files => GetFiles().Select(a => new LocalFile(a, FS)).Cast<IFile>().ToList();
 
         public abstract void CreateDirectory(string name);
         public abstract DirectoryInfo[] GetDirectories();
@@ -70,9 +66,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public virtual async Task<FileSystemResult> PopulateAsync()
         {
-            IntDirectories = GetDirectories().Select(a => new LocalDirectory(a,FS) {Parent = this}).Cast<DirectoryImplementation>().ToList();
-            IntDirectories.ForEach(a=>FS.Refs[a.FullName]=a);
-            IntFiles = GetFiles().Select(a => new LocalFile(a,FS) { Parent=this }).ToList();
             IsPopulated = true;
             return await Task.FromResult(new FileSystemResult());
         }

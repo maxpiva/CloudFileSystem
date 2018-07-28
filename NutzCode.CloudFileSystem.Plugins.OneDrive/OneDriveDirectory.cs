@@ -31,6 +31,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
         public bool IsRoot { get; internal set; } = false;
 
 
+        public bool IsEmpty => !(Directories.Any() || Files.Any());
 
 
 
@@ -81,7 +82,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             List<IDirectory> dirlist = new List<IDirectory>();
             foreach (dynamic v in fr.Result)
             {
-                if (v.folder != null)
+                if (((IDictionary<string, object>)v).ContainsKey("folder"))
                 {
                     OneDriveDirectory dir = new OneDriveDirectory(FullName, FS) { Parent = this };
                     dir.SetData(JsonConvert.SerializeObject(v));

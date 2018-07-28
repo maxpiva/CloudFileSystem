@@ -1,15 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Composition;
-using System.Composition.Hosting;
-#if PRILONGPATH
-using Pri.LongPath;
-using SearchOption = System.IO.SearchOption;
-#else
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-#endif
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Loader;
 using NutzCode.Libraries.Web.StreamProvider;
 
 namespace NutzCode.CloudFileSystem
@@ -25,7 +18,7 @@ namespace NutzCode.CloudFileSystem
         public const int MaxWaitBlockDistance = 2;
         public const int DirectoryTreeCacheSize = 1024;
 
-        [ImportMany]
+
         public IEnumerable<ICloudPlugin> List { get; set; }
 
         public WebDataProvider WebDataProvider = new WebDataProvider(MaximumNumberOfInactiveStreams, BlockSize);
@@ -35,17 +28,24 @@ namespace NutzCode.CloudFileSystem
             Assembly assembly = Assembly.GetEntryAssembly();
             string executableLocation = assembly.Location;
             string dirname = Path.GetDirectoryName(executableLocation);
+            List<ICloudPlugin> ls = new List<ICloudPlugin>();
             if (dirname != null)
             {
-                List<Assembly> assemblies = Directory.GetFiles(dirname, "*.dll", SearchOption.AllDirectories)
-                    .Select(AssemblyLoadContext.Default.LoadFromAssemblyPath).ToList();
+                List<Assembly> assemblies = Directory.GetFiles(dirname, "*.dll", SearchOption.AllDirectories).Select(Assembly.LoadFrom).ToList();
                 assemblies.Add(assembly);
-                ContainerConfiguration configuration = new ContainerConfiguration().WithAssemblies(assemblies);
-                using (CompositionHost container = configuration.CreateContainer())
+                foreach (Assembly a in assemblies)
                 {
-                    List = container.GetExports<ICloudPlugin>();
+                    foreach (Type t in a.GetTypes())
+                    {
+                        if (typeof(ICloudPlugin).IsAssignableFrom(t) && !t.IsInterface)
+                        {
+                            ls.Add((ICloudPlugin)Activator.CreateInstance(t));
+                        }
+                    }
                 }
             }
+
+            List = ls;
         }
     }
 }

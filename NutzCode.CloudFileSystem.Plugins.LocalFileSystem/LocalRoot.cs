@@ -4,13 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-#if PRILONGPATH
-using Pri.LongPath;
-using DirectoryInfo=System.IO.DirectoryInfo;
-using FileInfo=System.IO.FileInfo;
-#else
 using System.IO;
-#endif
 using Stream = System.IO.Stream;
 using DriveInfo = System.IO.DriveInfo;
 

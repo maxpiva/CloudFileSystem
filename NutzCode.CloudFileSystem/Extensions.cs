@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-#if PRILONGPATH
-using Pri.LongPath;
-#else
 using System.IO;
-#endif
 namespace NutzCode.CloudFileSystem
 {
     public static class Extensions

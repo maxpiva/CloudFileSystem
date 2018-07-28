@@ -3,14 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
  using MimeTypes;
-#if PRILONGPATH
-using Pri.LongPath;
-using DirectoryInfo=System.IO.DirectoryInfo;
-using FileInfo=System.IO.FileInfo;
-using FileNotFoundException=System.IO.FileNotFoundException;
-#else
 using System.IO;
-#endif
 using Stream = System.IO.Stream;
 using FileAttributes = System.IO.FileAttributes;
 
@@ -21,6 +14,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
     {
         // ReSharper disable once InconsistentNaming
         internal FileInfo file;
+
         public override string Name => file?.Name ?? string.Empty;
         public override DateTime? ModifiedDate => file?.LastWriteTime;
         public override DateTime? CreatedDate => file?.CreationTime;
@@ -129,7 +123,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 FileInfo finfo = new FileInfo(destname);
                 LocalFile local = new LocalFile(finfo, FS);
                 local.Parent = destination;
-                to.IntFiles.Add(local);
                 return await Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)
@@ -174,7 +167,6 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             try
             {
                 file.Delete();
-                ((DirectoryImplementation) Parent).IntFiles.Remove(this);
                 return await Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)

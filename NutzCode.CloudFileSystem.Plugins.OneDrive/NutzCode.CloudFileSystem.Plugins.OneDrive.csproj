@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net47</TargetFrameworks>
@@ -16,11 +16,10 @@
     <DefineConstants>NETCORE;NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net47'">
-    <DefineConstants>NET47;NETFULL;PRILONGPATH</DefineConstants>
+    <DefineConstants>NET47;NETFULL</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.4.0" />
-    <PackageReference Include="Pri.LongPath" Version="2.0.45" Condition=" '$(TargetFramework)' == 'net47'" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NutzCode.CloudFileSystem\NutzCode.CloudFileSystem.csproj" />

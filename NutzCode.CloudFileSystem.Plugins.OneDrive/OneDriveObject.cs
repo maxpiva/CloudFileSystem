@@ -38,7 +38,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
                 count = obj.children.Count;
                 if (count > 0)
                 {
-                    accum.AddRange(obj.items);
+                    accum.AddRange(obj.children);
                     if (!((IDictionary<string, object>) obj).ContainsKey("@odata.nextLink"))
                         count = 0;
                     else
@@ -71,7 +71,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             }
         }
 
-        
+
         public async Task<FileSystemResult> MoveAsync(IDirectory destination)
         {
             if (Parent == null)

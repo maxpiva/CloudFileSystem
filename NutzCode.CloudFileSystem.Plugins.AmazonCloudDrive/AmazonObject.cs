@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using Stream = System.IO.Stream;
-#if PRILONGPATH
-using Pri.LongPath;
-#else
 using System.IO;
-#endif
 using System.Linq;
 using System.Net;
 using System.Net.Http;

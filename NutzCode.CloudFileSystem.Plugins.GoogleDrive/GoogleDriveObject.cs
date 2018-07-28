@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using Stream = System.IO.Stream;
 using MemoryStream = System.IO.MemoryStream;
-#if PRILONGPATH
-using Pri.LongPath;
-#else
 using System.IO;
-#endif
 using System.Linq;
 using System.Net.Http;
 using System.Text;
