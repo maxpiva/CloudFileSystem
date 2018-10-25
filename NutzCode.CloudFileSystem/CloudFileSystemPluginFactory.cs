@@ -31,7 +31,16 @@ namespace NutzCode.CloudFileSystem
             List<ICloudPlugin> ls = new List<ICloudPlugin>();
             if (dirname != null)
             {
-                List<Assembly> assemblies = Directory.GetFiles(dirname, "*.dll", SearchOption.AllDirectories).Select(Assembly.LoadFrom).ToList();
+                List<Assembly> assemblies = Directory.GetFiles(dirname, "*.dll", SearchOption.AllDirectories).Select(s => {
+                    try 
+                    {
+                        return Assembly.LoadFrom(s);
+                    }
+                    catch (System.BadImageFormatException)
+                    {
+                        return null;
+                    }
+                }).Where(s => s != null).ToList();
                 assemblies.Add(assembly);
                 foreach (Assembly a in assemblies)
                 {
