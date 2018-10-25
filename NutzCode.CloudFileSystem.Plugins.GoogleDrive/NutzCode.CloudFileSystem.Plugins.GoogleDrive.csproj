@@ -39,4 +39,12 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Remove="Resources\Image48x48png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Image48x48png" />
+  </ItemGroup>
+
 </Project>

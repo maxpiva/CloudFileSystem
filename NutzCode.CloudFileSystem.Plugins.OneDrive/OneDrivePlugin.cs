@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.IO;
+using System.Threading.Tasks;
 using NutzCode.CloudFileSystem.OAuth2;
 using NutzCode.CloudFileSystem.Plugins.OneDrive.Properties;
 
@@ -9,7 +10,15 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 
         public string Name => "One Drive";
 
-        public byte[] Icon => Resources.Image48x48;
+        public byte[] Icon {
+            get {
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    this.GetType().Assembly.GetManifestResourceStream($"{this.GetType().Namespace}.Resources.Image48x48png").CopyTo(ms);
+                    return ms.GetBuffer();                
+                }
+            }
+        }
 
         public PluginAuthData PluginAuthData => new PluginAuthData { LoginUri = OneDriveFileSystem.OneDriveOAuthLogin, RequiredScopes = OneDriveFileSystem.OneDriveScopes, ScopesCommaSeparated = false };
 
