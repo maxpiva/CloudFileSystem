@@ -137,10 +137,9 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             {
                 if (string.Equals(Name, newname))
                     return new FileSystemResult(Status.ArgumentError, "Unable to rename, names are the same");
-                string newfullname = Path.Combine(Parent.FullName, newname);
+                string newfullname = Path.Combine(Parent?.FullName ?? file.DirectoryName, newname);
                 File.Move(FullName, newfullname);
-                FileInfo finfo = new FileInfo(newfullname);
-                file = finfo;
+                file = new FileInfo(newfullname);
                 return await Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)
