@@ -385,7 +385,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             if (ex2.Status != Status.Ok)
                 errors.Add(ex2.Error);
             if (errors.Count > 0)
-                return new FileSystemResult(Status.HttpError, "Save With Errors: " + string.Join("\r\n\r\n", errors));
+                return new FileSystemResult(Status.HttpError, "Save With Errors: " + string.Join("\r\n", errors));
             return new FileSystemResult();
         }
         private void SetAssets()

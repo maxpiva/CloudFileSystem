@@ -31,11 +31,32 @@ namespace NutzCode.CloudFileSystem
             List<ICloudPlugin> ls = new List<ICloudPlugin>();
             if (dirname != null)
             {
-                List<Assembly> assemblies = Directory.GetFiles(dirname, "*.dll", SearchOption.AllDirectories).Select(Assembly.LoadFrom).ToList();
+                List<Assembly> assemblies=new List<Assembly>();
+                foreach (string s in Directory.GetFiles(dirname, "NutzCode.*.dll", SearchOption.TopDirectoryOnly))
+                {
+                    try
+                    {
+                        assemblies.Add(Assembly.LoadFrom(s));
+                    }
+                    catch (Exception e)
+                    {
+                        //Ignore
+                    }
+                }
                 assemblies.Add(assembly);
                 foreach (Assembly a in assemblies)
                 {
-                    foreach (Type t in a.GetTypes())
+                    Type[] types;
+                    try
+                    {
+                        types = a.GetTypes();
+                    }
+                    catch
+                    {
+                        types=new Type[0];
+                    }
+
+                    foreach (Type t in types)
                     {
                         if (typeof(ICloudPlugin).IsAssignableFrom(t) && !t.IsInterface)
                         {
