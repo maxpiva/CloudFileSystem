@@ -5,6 +5,7 @@ using Stream = System.IO.Stream;
 using System.IO;
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web;
+using System.Threading;
 
 namespace NutzCode.CloudFileSystem
 {
@@ -80,9 +81,9 @@ namespace NutzCode.CloudFileSystem
                 cache[FullName] = (T)(object)this;
             }
         }
-        public virtual async Task<FileSystemResult<Stream>> OpenReadAsync()
+        public virtual Task<FileSystemResult<Stream>> OpenReadAsync(CancellationToken token=default(CancellationToken))
         {
-            return await Task.FromResult(new FileSystemResult<Stream>(new SeekableWebStream(GetKey(), Size, CloudFileSystemPluginFactory.Instance.WebDataProvider, GetSeekableWebParameters)));
+            return Task.FromResult(new FileSystemResult<Stream>(new SeekableWebStream(GetKey(), Size, CloudFileSystemPluginFactory.Instance.WebDataProvider, GetSeekableWebParameters)));
         }
 
         public BaseObject(string parentpath, Mappings m)

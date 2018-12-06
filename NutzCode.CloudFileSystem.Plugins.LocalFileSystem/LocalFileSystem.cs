@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
-
+using System.Threading;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
@@ -25,18 +25,18 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             FS = this;
         }
 
-        public static async Task<IFileSystem> Create(string name)
+        public static async Task<IFileSystem> CreateAsync(string name, CancellationToken token = default(CancellationToken))
         {
             LocalFileSystem l = new LocalFileSystem();
             l.fname = name;
-            FileSystemResult r = await l.PopulateAsync();
+            FileSystemResult r = await l.PopulateAsync(token).ConfigureAwait(false);
             if (r.Status != Status.Ok)
                 r.CopyErrorTo(l);
             return l;
         }
 
         //TODO locking?
-        public override async Task<FileSystemSizes> QuotaAsync()
+        public override async Task<FileSystemSizes> QuotaAsync(CancellationToken token = default(CancellationToken))
         {
             Sizes = new FileSystemSizes();
             // ReSharper disable once PossibleInvalidCastExceptionInForeachLoop
@@ -44,7 +44,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             {
                 try
                 {
-                    FileSystemSizes z = await ld.QuotaAsync();
+                    FileSystemSizes z = await ld.QuotaAsync(token).ConfigureAwait(false);
                     if (z.Status==Status.Ok)
                     {
                         Sizes.AvailableSize += z.AvailableSize;
@@ -57,10 +57,10 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                     //ignored
                 }
             }
-            return await Task.FromResult(Sizes);
+            return await Task.FromResult(Sizes).ConfigureAwait(false);
         }
 
-        public async Task<IObject> ResolveAsync(string path)
+        public Task<IObject> ResolveAsync(string path, CancellationToken token = default(CancellationToken))
         {
             try
             {
@@ -78,7 +78,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                         idx = path.Length;
                     string share = path.Substring(0, idx);
                     if (!Directory.Exists(share))
-                        return new EmptyObject { Status = Status.NotFound, Error = "Not found" };
+                        return Task.FromResult<IObject>(new EmptyObject { Status = Status.NotFound, Error = "Not found" });
                     if (!FS.Directories.Any(a => a.FullName.Equals(share, StringComparison.InvariantCultureIgnoreCase)))
                         FS.AddUncPath(share);
                 }
@@ -86,7 +86,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             catch (Exception e)
             {
                 // Last ditch effort to catch errors, this needs to always succeed.
-                return new EmptyObject { Status = Status.SystemError, Error = e.Message };
+                return Task.FromResult<IObject>(new EmptyObject { Status = Status.SystemError, Error = e.Message });
             }
             if (File.Exists(path) || Directory.Exists(path))
             {
@@ -94,12 +94,12 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
                 // It's a directory
                 if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
-                    return await Task.FromResult(new LocalDirectory(new DirectoryInfo(path), FS));
+                    return Task.FromResult<IObject>(new LocalDirectory(new DirectoryInfo(path), FS));
 
                 // It's a file
-                return await Task.FromResult(new LocalFile(new FileInfo(path), FS));
+                return Task.FromResult<IObject>(new LocalFile(new FileInfo(path), FS));
             }
-            return new EmptyObject { Status = Status.NotFound, Error = "Not found" };
+            return Task.FromResult<IObject>(new EmptyObject { Status = Status.NotFound, Error = "Not found" });
            
         }
 

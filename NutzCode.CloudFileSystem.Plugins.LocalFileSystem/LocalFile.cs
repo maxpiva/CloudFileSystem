@@ -43,26 +43,25 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 
         public long Size => file?.Length ?? 0;
 
-        public async Task<FileSystemResult<Stream>> OpenReadAsync()
+        public Task<FileSystemResult<Stream>> OpenReadAsync(CancellationToken token = default(CancellationToken))
         {
             try
             {
                 if (file == null)
-                    return new FileSystemResult<Stream>(Status.ArgumentError,"Empty File");
-                return await Task.FromResult(new FileSystemResult<Stream>(file?.OpenRead()));
+                    return Task.FromResult(new FileSystemResult<Stream>(Status.ArgumentError,"Empty File"));
+                return Task.FromResult(new FileSystemResult<Stream>(file?.OpenRead()));
             }
             catch (Exception e)
             {
-                return await Task.FromResult(new FileSystemResult<Stream>(Status.SystemError, e.Message));
+                return Task.FromResult(new FileSystemResult<Stream>(Status.SystemError, e.Message));
             }
         }
 
-        public async Task<FileSystemResult> OverwriteFileAsync(Stream readstream, CancellationToken token,
-            IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<FileSystemResult> OverwriteFileAsync(Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token = default(CancellationToken))
         {
             try
             {
-                await InternalCreateFile((DirectoryImplementation) Parent, Name, readstream, token, progress, properties);
+                await InternalCreateFileAsync((DirectoryImplementation) Parent, Name, readstream, token, progress, properties).ConfigureAwait(false);
                 return new FileSystemResult();
             }
             catch (Exception e)
@@ -85,93 +84,93 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public string Extension => Path.GetExtension(Name)?.Substring(1) ?? string.Empty;
 
 
-        public override async Task<FileSystemResult> MoveAsync(IDirectory destination)
+        public override Task<FileSystemResult> MoveAsync(IDirectory destination, CancellationToken token = default(CancellationToken))
         {
             try
             {
                 DirectoryImplementation to = destination as DirectoryImplementation;
                 if (to == null)
-                    return new FileSystemResult(Status.ArgumentError, "Destination should be a Local Directory");
+                    return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Destination should be a Local Directory"));
                 if (to is LocalRoot)
-                    return new FileSystemResult(Status.ArgumentError, "Root cannot be destination");
+                    return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Root cannot be destination"));
                 string destname = Path.Combine(to.FullName, Name);
                 File.Move(FullName, destname);
                 ((DirectoryImplementation) Parent).IntFiles.Remove(this);
                 to.IntFiles.Add(this);
                 Parent = to;
                 file = new FileInfo(destname);
-                return await Task.FromResult(new FileSystemResult());
+                return Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)
             {
-                return new FileSystemResult(Status.SystemError, e.Message);
+                return Task.FromResult(new FileSystemResult(Status.SystemError, e.Message));
             }
         }
 
-        public override async Task<FileSystemResult> CopyAsync(IDirectory destination)
+        public override Task<FileSystemResult> CopyAsync(IDirectory destination, CancellationToken token = default(CancellationToken))
         {
             try
             {
                 DirectoryImplementation to = destination as DirectoryImplementation;
                 if (to == null)
-                    return new FileSystemResult(Status.ArgumentError, "Destination should be a Local Directory");
+                    return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Destination should be a Local Directory"));
                 if (to is LocalRoot)
-                    return new FileSystemResult(Status.ArgumentError, "Root cannot be destination");
+                    return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Root cannot be destination"));
                 string destname = Path.Combine(to.FullName, Name);
 
                 File.Copy(FullName, destname);
                 FileInfo finfo = new FileInfo(destname);
                 LocalFile local = new LocalFile(finfo, FS);
                 local.Parent = destination;
-                return await Task.FromResult(new FileSystemResult());
+                return Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)
             {
-                return new FileSystemResult(Status.SystemError, e.Message);
+                return Task.FromResult(new FileSystemResult(Status.SystemError, e.Message));
             }
         }
 
-        public override async Task<FileSystemResult> RenameAsync(string newname)
+        public override Task<FileSystemResult> RenameAsync(string newname, CancellationToken token = default(CancellationToken))
         {
             try
             {
                 if (string.Equals(Name, newname))
-                    return new FileSystemResult(Status.ArgumentError, "Unable to rename, names are the same");
+                    return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to rename, names are the same"));
                 string newfullname = Path.Combine(Parent?.FullName ?? file.DirectoryName, newname);
                 File.Move(FullName, newfullname);
                 file = new FileInfo(newfullname);
-                return await Task.FromResult(new FileSystemResult());
+                return Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)
             {
-                return new FileSystemResult(Status.SystemError, e.Message);
+                return Task.FromResult(new FileSystemResult(Status.SystemError, e.Message));
             }
         }
 
-        public override async Task<FileSystemResult> TouchAsync()
+        public override Task<FileSystemResult> TouchAsync(CancellationToken token = default(CancellationToken))
         {
             try
             {
                 file.LastWriteTime = DateTime.Now;
-                return await Task.FromResult(new FileSystemResult());
+                return Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)
             {
-                return new FileSystemResult(Status.SystemError, e.Message);
+                return Task.FromResult(new FileSystemResult(Status.SystemError, e.Message));
             }
         }
 
-        public override async Task<FileSystemResult> DeleteAsync(bool skipTrash)
+        public override Task<FileSystemResult> DeleteAsync(bool skipTrash, CancellationToken token = default(CancellationToken))
         {
             try
             {
                 file.Delete();
-                return await Task.FromResult(new FileSystemResult());
+                return Task.FromResult(new FileSystemResult());
             }
             catch (Exception e)
             {
-                if (e is FileNotFoundException) return await Task.FromResult(new FileSystemResult());
-                return new FileSystemResult(Status.SystemError, e.Message);
+                if (e is FileNotFoundException) return Task.FromResult(new FileSystemResult());
+                return Task.FromResult(new FileSystemResult(Status.SystemError, e.Message));
             }
         }
     }

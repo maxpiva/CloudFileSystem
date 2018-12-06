@@ -36,12 +36,12 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 
 
 
-        public Task<IFile> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<IFile> CreateFileAsync(string name, Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token=default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
+        public async Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties, CancellationToken token = default(CancellationToken))
         {
 
             //if (properties == null)
@@ -50,14 +50,14 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             req.Name = name;
             req.Folder = new Folder();
             string requesturl = CreateDir.FormatRest(this is OneDriveRoot ? "root" : Id);
-            FileSystemResult<ExpandoObject> ex = await FS.OAuth.CreateMetadataStream<ExpandoObject>(requesturl, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)), "application/json");
+            FileSystemResult<ExpandoObject> ex = await FS.OAuth.CreateMetadataStreamAsync<ExpandoObject>(requesturl, token, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)), "application/json").ConfigureAwait(false);
             if (ex.Status==Status.Ok)
             {
                 string id;
                 if (InternalTryGetProperty(ex.Result, "id", out id))
                 {
                     //FileSystemResult<ExpandoObject> ex2 =
-                        await FS.OAuth.CreateMetadataStream<ExpandoObject>(Item.FormatRest(FS.OneDriveUrl, id));
+                        await FS.OAuth.CreateMetadataStreamAsync<ExpandoObject>(Item.FormatRest(FS.OneDriveUrl, id),token).ConfigureAwait(false);
                     OneDriveDirectory dir = new OneDriveDirectory(FullName, FS) {Parent = this};
                     dir.SetData(JsonConvert.SerializeObject(ex.Result));
                     FS.Refs[dir.FullName] = dir;
@@ -69,13 +69,13 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             return new OneDriveDirectory(null, FS) { Status = ex.Status, Error = ex.Error };
         }
 
-        public async Task<FileSystemResult> PopulateAsync()
+        public async Task<FileSystemResult> PopulateAsync(CancellationToken token = default(CancellationToken))
         {
-            FileSystemResult r = await FS.OAuth.MayRefreshToken();
+            FileSystemResult r = await FS.OAuth.MayRefreshTokenAsync(false, token).ConfigureAwait(false);
             if (r.Status != Status.Ok)
                 return r;
             string url = ListChildrens.FormatRest(this is OneDriveRoot ? "root" : Id);
-            FileSystemResult<dynamic> fr = await List(url);
+            FileSystemResult<dynamic> fr = await ListAsync(url, token).ConfigureAwait(false);
             if (fr.Status!=Status.Ok)
                 return new FileSystemResult(fr.Status, fr.Error);
             _files = new List<OneDriveFile>();
@@ -104,9 +104,9 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             return new FileSystemResult();
         }
 
-        public virtual Task<FileSystemSizes> QuotaAsync()
+        public virtual Task<FileSystemSizes> QuotaAsync(CancellationToken token = default(CancellationToken))
         {
-            return FS.QuotaAsync();
+            return FS.QuotaAsync(token);
         }
 
 

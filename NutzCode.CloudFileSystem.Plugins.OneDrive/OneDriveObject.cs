@@ -25,13 +25,13 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
         {
             FS = fs;
         }
-        internal async Task<FileSystemResult<dynamic>> List(string url)
+        internal async Task<FileSystemResult<dynamic>> ListAsync(string url, CancellationToken token)
         {
             int count;
             List<dynamic> accum = new List<dynamic>();
             do
             {
-                FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStream<ExpandoObject>(url);
+                FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStreamAsync<ExpandoObject>(url,token).ConfigureAwait(false);
                 if (cl.Status!=Status.Ok)
                     return new FileSystemResult<dynamic>(cl.Status, cl.Error);
                 dynamic obj = cl.Result;
@@ -72,7 +72,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
         }
 
 
-        public async Task<FileSystemResult> MoveAsync(IDirectory destination)
+        public async Task<FileSystemResult> MoveAsync(IDirectory destination, CancellationToken token = default(CancellationToken))
         {
             if (Parent == null)
                 return new FileSystemResult(Status.ArgumentError, "Unable to move root directory");
@@ -86,7 +86,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             req.ParentReference=new ItemReference();
             req.ParentReference.Id = dest.Id;
 
-            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)), "application/json", new HttpMethod("PATCH"));
+            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStreamAsync<string>(url, token, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)), "application/json", new HttpMethod("PATCH")).ConfigureAwait(false);
             if (ex.Status==Status.Ok)
             {
                 string oldFullname = FullName;
@@ -110,7 +110,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
-        public async Task<FileSystemResult> CopyAsync(IDirectory destination)
+        public async Task<FileSystemResult> CopyAsync(IDirectory destination, CancellationToken token = default(CancellationToken))
         {
             if (Parent == null)
                 return new FileSystemResult(Status.ArgumentError, "Unable to move root directory");
@@ -124,7 +124,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             req.ParentReference = new ItemReference();
             req.ParentReference.Id = dest.Id;
 
-            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)), "application/json", HttpMethod.Post);
+            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStreamAsync<string>(url, token, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(req)), "application/json", HttpMethod.Post).ConfigureAwait(false);
 
             //TODO Add job monitor
             if (ex.Status == Status.Ok)
@@ -149,12 +149,12 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
-        public async Task<FileSystemResult> RenameAsync(string newname)
+        public async Task<FileSystemResult> RenameAsync(string newname, CancellationToken token = default(CancellationToken))
         {
             string oldFullname = FullName;
             IDictionary<string, object> dic = MetadataExpanded;
             dic["name"] = newname;
-            FileSystemResult r=await WriteMetadataAsync(MetadataExpanded);
+            FileSystemResult r=await WriteMetadataAsync(MetadataExpanded, token).ConfigureAwait(false);
             if (r.Status == Status.Ok)
             {
                 if (this is OneDriveDirectory)
@@ -179,21 +179,21 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             SetAssets();
         }
 
-        public async Task<FileSystemResult> TouchAsync()
+        public Task<FileSystemResult> TouchAsync(CancellationToken token = default(CancellationToken))
         {
             IDictionary<string, object> dic = MetadataExpanded;
             if (dic.ContainsKey("dateTimeLastModified"))
                 dic["dateTimeLastModified"] = JsonConvert.SerializeObject(DateTime.UtcNow);
             else
                 dic.Add("dateTimeLastModified", JsonConvert.SerializeObject(DateTime.UtcNow));
-            return await WriteMetadataAsync(MetadataExpanded);
+            return WriteMetadataAsync(MetadataExpanded,token);
         }
 
-        public async Task<FileSystemResult> DeleteAsync(bool skipTrash)
+        public async Task<FileSystemResult> DeleteAsync(bool skipTrash, CancellationToken token = default(CancellationToken))
         {
             FileSystemResult<string> ex;
             string url = Item.FormatRest(Id);
-            ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null, HttpMethod.Delete);
+            ex = await FS.OAuth.CreateMetadataStreamAsync<string>(url, token, null, null, HttpMethod.Delete).ConfigureAwait(false);
             if (ex.Status == Status.Ok)
             {
                 if (this is OneDriveFile)
@@ -209,7 +209,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
-        public Task<IFile> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<IFile> CreateAssetAsync(string name, Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
@@ -265,10 +265,10 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
                 }
             }
         }
-        public async Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata)
+        public async Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata, CancellationToken token = default(CancellationToken))
         {
             string url = Item.FormatRest(Id);
-            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(metadata)), "application/json", new HttpMethod("PATCH"));
+            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStreamAsync<string>(url, token, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(metadata)), "application/json", new HttpMethod("PATCH")).ConfigureAwait(false);
             if (ex.Status == Status.Ok)
             {
                 SetData(ex.Result);
@@ -276,12 +276,12 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
             }
             return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
-        public Task<FileSystemResult<List<Property>>> ReadPropertiesAsync()
+        public Task<FileSystemResult<List<Property>>> ReadPropertiesAsync(CancellationToken token = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult> SavePropertyAsync(Property property)
+        public Task<FileSystemResult> SavePropertyAsync(Property property, CancellationToken token = default(CancellationToken))
         {
             throw new NotSupportedException();
         }

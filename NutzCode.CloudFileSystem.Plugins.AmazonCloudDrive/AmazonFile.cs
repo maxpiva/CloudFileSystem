@@ -52,12 +52,12 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             }
         }
 
-        public async Task<FileSystemResult> OverwriteFileAsync(Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<FileSystemResult> OverwriteFileAsync(Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token=default(CancellationToken))
         {
 #if DEBUG || EXPERIMENTAL
             string type;
             TryGetMetadataValue("kind", out type);
-            IFile f=await InternalCreateFile(Name, type,true,(AmazonObject)Parent,readstream,token,progress,properties);
+            IFile f=await InternalCreateFileAsync(Name, type,true,(AmazonObject)Parent,readstream,token,progress,properties).ConfigureAwait(false);
             if (f.Status==Status.Ok)
             {
                 // ReSharper disable once PossibleInvalidCastException

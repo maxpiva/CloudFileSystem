@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using NutzCode.CloudFileSystem.OAuth2;
 using NutzCode.CloudFileSystem.Plugins.GoogleDrive.Properties;
@@ -22,18 +23,18 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
         public PluginAuthData PluginAuthData => new PluginAuthData { LoginUri = GoogleDriveFileSystem.GoogleOAuthLogin, RequiredScopes = GoogleDriveFileSystem.GoogleScopes, ScopesCommaSeparated = false };
 
 
-        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettings settings, string userauthorization)
+        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettings settings, string userauthorization, CancellationToken token=default(CancellationToken))
         {
-            return GoogleDriveFileSystem.Create(filesystemname, settings, Name, userauthorization);
+            return GoogleDriveFileSystem.CreateAsync(filesystemname, settings, Name, userauthorization, token);
         }
 
-        public Task<IFileSystem> InitAsync(string filesystemname, ProxyUserSettings settings, string userauthorization)
+        public Task<IFileSystem> InitAsync(string filesystemname, ProxyUserSettings settings, string userauthorization, CancellationToken token = default(CancellationToken))
         {
-            return GoogleDriveFileSystem.Create(filesystemname, settings, Name, userauthorization);
+            return GoogleDriveFileSystem.CreateAsync(filesystemname, settings, Name, userauthorization, token);
         }
-        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettingWithCode settings)
+        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettingWithCode settings, CancellationToken token = default(CancellationToken))
         {
-            return GoogleDriveFileSystem.Create(filesystemname, settings, Name, null);
+            return GoogleDriveFileSystem.CreateAsync(filesystemname, settings, Name, null, token);
         }
 
        

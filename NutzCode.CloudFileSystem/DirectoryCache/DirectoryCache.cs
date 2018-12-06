@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web.StreamProvider;
 
@@ -20,7 +21,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
             dirs.ForEach(a=>this[a.FullName]=a);
         }
 
-        private async Task<IObject> GetFromPath(IDirectory d, string path)
+        private async Task<IObject> GetFromPathAsync(IDirectory d, string path, CancellationToken token)
         {
             try
             {
@@ -29,7 +30,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                     path = path.Substring(1);
                 if (!d.IsPopulated)
                 {
-                    FileSystemResult n = await d.PopulateAsync();
+                    FileSystemResult n = await d.PopulateAsync(token).ConfigureAwait(false);
                     if (n.Status != Status.Ok)
                         return new EmptyObject {Status = n.Status, Error = n.Error};
                     populated = true;
@@ -54,14 +55,14 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                             break;
                         if (populated)
                             break;
-                        FileSystemResult n = await d.PopulateAsync();
+                        FileSystemResult n = await d.PopulateAsync(token).ConfigureAwait(false);
                         if (n.Status != Status.Ok)
                             return new EmptyObject { Status = n.Status, Error = n.Error };
                         populated = true;
                     }
                     if (fnd == null)
                         return new EmptyObject { Status = Status.NotFound, Error = "File Not Found" };
-                    return await GetFromPath(fnd, path);
+                    return await GetFromPathAsync(fnd, path, token).ConfigureAwait(false);
                 }
                 while (true)
                 {
@@ -77,7 +78,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                     }
                     if (populated)
                         break;
-                    FileSystemResult n = await d.PopulateAsync();
+                    FileSystemResult n = await d.PopulateAsync(token).ConfigureAwait(false);
                     if (n.Status!=Status.Ok)
                         return new EmptyObject { Status = n.Status, Error = n.Error };
                     populated = true;
@@ -92,7 +93,7 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
         
         }
 
-        public async Task<IObject> ObjectFromPath(IFileSystem fs, string fullpath)
+        public Task<IObject> ObjectFromPathAsync(IFileSystem fs, string fullpath, CancellationToken token)
         {
             // take both and convert
             fullpath = fullpath.Replace("/", $"{System.IO.Path.DirectorySeparatorChar}");
@@ -103,12 +104,12 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
 
             if (fullpath.Equals($"{System.IO.Path.DirectorySeparatorChar}") || fullpath == string.Empty ||
                 fullpath.Equals(fs.FullName, StringComparison.InvariantCultureIgnoreCase))
-                return fs;
+                return Task.FromResult<IObject>(fs);
 
             IDirectory d = this[fullpath.Replace("*", $"{System.IO.Path.DirectorySeparatorChar}")];
             string lastpart = string.Empty;
             if (d != null)
-                return d;
+                return Task.FromResult<IObject>(d);
             while (fullpath != string.Empty)
             {
                 int idx = fullpath.LastIndexOf($"{System.IO.Path.DirectorySeparatorChar}", StringComparison.InvariantCulture);
@@ -135,13 +136,13 @@ namespace NutzCode.CloudFileSystem.DirectoryCache
                     if (!originalPath.StartsWith(directory.Name, StringComparison.InvariantCulture)) continue;
 
                     if (originalPath.Equals(directory.Name, StringComparison.InvariantCulture))
-                        return directory;
+                        return Task.FromResult((IObject)directory);
 
                     lastpart = originalPath.Substring(directory.Name.Length);
                     d = directory;
                 }
             }
-            return await GetFromPath(d, lastpart);
+            return GetFromPathAsync(d, lastpart, token);
         }
     }
 }

@@ -41,14 +41,13 @@ namespace NutzCode.CloudFileSystem
                         return null;
                     }
                 }).Where(s => s != null).ToList();
-                List<Assembly> assemblies=new List<Assembly>();
                 foreach (string s in Directory.GetFiles(dirname, "NutzCode.*.dll", SearchOption.TopDirectoryOnly))
                 {
                     try
                     {
                         assemblies.Add(Assembly.LoadFrom(s));
                     }
-                    catch (Exception e)
+                    catch (Exception)
                     {
                         //Ignore
                     }

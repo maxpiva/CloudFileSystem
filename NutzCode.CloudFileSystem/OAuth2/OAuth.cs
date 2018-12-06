@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Newtonsoft.Json;
@@ -40,7 +41,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
 
         internal string DefaultUserAgent = "CloudFileSystem/1.0";
 
-        internal virtual async Task<FileSystemResult> InitAsync(BaseUserSettings settings)
+        internal virtual async Task<FileSystemResult> InitAsync(BaseUserSettings settings, CancellationToken token)
         {
             if (string.IsNullOrEmpty(settings.UserAgent))
                 settings.UserAgent = DefaultUserAgent;
@@ -48,16 +49,16 @@ namespace NutzCode.CloudFileSystem.OAuth2
             LocalUserSettingWithCode userwithcode=settings as LocalUserSettingWithCode;
             if (userwithcode != null)
             {
-                FileSystemResult fs = await GetTokenAsync(userwithcode);
+                FileSystemResult fs = await GetTokenAsync(userwithcode,token).ConfigureAwait(false);
                 if (fs.Status != Status.Ok)
                     return fs;
             }
-            FileSystemResult r = await MayRefreshToken();
+            FileSystemResult r = await MayRefreshTokenAsync(false, token).ConfigureAwait(false);
             if (r.Status != Status.Ok)
                 return r;
             if (EndPointUri != null)
             {
-                r = await MayRefreshEndPoint();
+                r = await MayRefreshEndPointAsync(token).ConfigureAwait(false);
                 if (r.Status != Status.Ok)
                     return r;
             }
@@ -125,7 +126,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
 
 
 
-        internal async Task<FileSystemResult> MayRefreshToken(bool force = false)
+        internal async Task<FileSystemResult> MayRefreshTokenAsync(bool force = false, CancellationToken token=default(CancellationToken))
         {
             if (Token == null)
                 return new FileSystemResult(Status.LoginRequired, "Authorization Token not found");
@@ -142,7 +143,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
                     else
                         uri += "/" + refreshToken;
                     Token = null;
-                    FileSystemResult<Token> fs = await CreateMetadataStream<Token>(uri);
+                    FileSystemResult<Token> fs = await CreateMetadataStreamAsync<Token>(uri,token).ConfigureAwait(false);
                     if (fs.Status != Status.Ok)
                         return new FileSystemResult(Status.LoginRequired, fs.Error);
                     Token = fs.Result;
@@ -158,7 +159,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
                     postdata.Add("client_id", loc.ClientId);
                     postdata.Add("client_secret", loc.ClientSecret);
                     Token = null;
-                    FileSystemResult<Token> fs = await CreateMetadataStream<Token>(OAuthUri, Encoding.UTF8.GetBytes(postdata.PostFromDictionary()));
+                    FileSystemResult<Token> fs = await CreateMetadataStreamAsync<Token>(OAuthUri, token, Encoding.UTF8.GetBytes(postdata.PostFromDictionary())).ConfigureAwait(false);
                     if (fs.Status != Status.Ok)
                         return new FileSystemResult(Status.LoginRequired, fs.Error);
                     Token = fs.Result;
@@ -168,12 +169,12 @@ namespace NutzCode.CloudFileSystem.OAuth2
             }
             return new FileSystemResult();
         }
-        internal async Task<FileSystemResult> MayRefreshEndPoint()
+        internal async Task<FileSystemResult> MayRefreshEndPointAsync(CancellationToken token)
         {
             
             if (EndPoint == null || EndPoint.ExpirationDate < DateTime.Now)
             {
-                FileSystemResult<EndPoint> fs = await CreateMetadataStream<EndPoint>(EndPointUri);
+                FileSystemResult<EndPoint> fs = await CreateMetadataStreamAsync<EndPoint>(EndPointUri, token).ConfigureAwait(false);
                 if (fs.Status != Status.Ok)
                     return fs;
                 EndPoint = fs.Result;
@@ -184,12 +185,12 @@ namespace NutzCode.CloudFileSystem.OAuth2
             }
             return new FileSystemResult();
         }
-        private async Task<bool> ErrorCallback(WebStream w, object p)
+        private async Task<bool> ErrorCallbackAsync(WebStream w, object p, CancellationToken token)
         {
             SeekableWebParameters swb = (SeekableWebParameters)p;
             if (w.StatusCode == HttpStatusCode.Unauthorized)
             {
-                await MayRefreshToken(true);
+                await MayRefreshTokenAsync(true,token).ConfigureAwait(false);
                 NameValueCollection nm = new NameValueCollection();
                 nm.Add("Authorization", "Bearer " + Token.AccessToken);
                 swb.Headers = nm;
@@ -207,18 +208,18 @@ namespace NutzCode.CloudFileSystem.OAuth2
             nm.Add("Authorization", "Bearer " + Token.AccessToken);
             pars.Headers = nm;
             pars.ErrorCallbackParameter = pars;
-            pars.ErrorCallback = ErrorCallback;
+            pars.ErrorCallback = ErrorCallbackAsync;
             return pars;
         }
 
-        internal async Task<FileSystemResult<T>> CreateMetadataStream<T>(string url, byte[] postdata = null, string contenttype = "application/x-www-form-urlencoded", HttpMethod method = null) where T : class
+        internal async Task<FileSystemResult<T>> CreateMetadataStreamAsync<T>(string url,  CancellationToken token, byte[] postdata = null, string contenttype = "application/x-www-form-urlencoded", HttpMethod method = null) where T : class
         {
             bool retry = false;
             do
             {
                 if (method == null)
                     method = HttpMethod.Get;
-                WebParameters pars = new WebParameters(new Uri(url));
+                WebParameters pars = new WebParameters(new Uri(url), TokenUri);
                 pars.Method = method;
                 if (postdata != null)
                 {
@@ -236,12 +237,12 @@ namespace NutzCode.CloudFileSystem.OAuth2
                     nm.Add("Authorization", "Bearer " + Token.AccessToken);
                     pars.Headers = nm;
                 }
-                using (WebStream w = await WebStreamFactory.Instance.CreateStreamAsync(pars))
+                using (WebStream w = await WebStreamFactory.Instance.CreateStreamAsync(pars,token).ConfigureAwait(false))
                 {
                     if ((w.StatusCode == HttpStatusCode.OK) || (w.StatusCode == HttpStatusCode.Created) || (w.StatusCode == HttpStatusCode.Accepted) || (w.StatusCode == HttpStatusCode.NoContent)) //TODO move this to a parameter
                     {
                         StreamReader rd = new StreamReader(w);
-                        string d = await rd.ReadToEndAsync();
+                        string d = await rd.ReadToEndAsync().ConfigureAwait(false);
                         if (typeof(T).Name.Equals("string",StringComparison.InvariantCultureIgnoreCase))
                             return new FileSystemResult<T>((T)(object)d);
                         return new FileSystemResult<T>(JsonConvert.DeserializeObject<T>(d));
@@ -251,12 +252,12 @@ namespace NutzCode.CloudFileSystem.OAuth2
                         return new FileSystemResult<T>(Status.HttpError, "'url' responds with Http code: " + w.StatusCode);
                     }
                     retry = true;
-                    await MayRefreshToken(true);
+                    await MayRefreshTokenAsync(true,token).ConfigureAwait(false);
                 }
             } while (true);
         }
 
-        private async Task<FileSystemResult> GetTokenAsync(LocalUserSettingWithCode sets)
+        private async Task<FileSystemResult> GetTokenAsync(LocalUserSettingWithCode sets, CancellationToken token)
         {
             Dictionary<string, string> postdata = new Dictionary<string, string>();
             postdata.Add("grant_type", "authorization_code");
@@ -264,7 +265,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
             postdata.Add("client_id",sets.ClientId);
             postdata.Add("client_secret", sets.ClientSecret);
             postdata.Add("redirect_uri", sets.OriginalRedirectUri);
-            FileSystemResult<Token> fs = await CreateMetadataStream<Token>(TokenUri, Encoding.UTF8.GetBytes(postdata.PostFromDictionary()));
+            FileSystemResult<Token> fs = await CreateMetadataStreamAsync<Token>(TokenUri, token, Encoding.UTF8.GetBytes(postdata.PostFromDictionary())).ConfigureAwait(false);
             if (fs.Status!=Status.Ok)
                 return new FileSystemResult(Status.LoginRequired, fs.Error);
             Token = fs.Result;

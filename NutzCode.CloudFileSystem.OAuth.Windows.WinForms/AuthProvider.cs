@@ -10,7 +10,7 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WinForms
     {
         public string Name => "WinForms";
 
-        public async Task<AuthResult> Login(AuthRequest request)
+        public async Task<AuthResult> LoginAsync(AuthRequest request, CancellationToken token=default(CancellationToken))
         {
             AuthResult r = new AuthResult();
             await Task.Factory.StartNew(() =>
@@ -28,7 +28,7 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WinForms
                     r.Status = Status.LoginRequired;
                     r.ErrorString = "Unable to login";
                 }
-            }, new CancellationToken(), TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext());
+            }, token, TaskCreationOptions.None, TaskScheduler.FromCurrentSynchronizationContext()).ConfigureAwait(true);
             return r;
         }
     }

@@ -21,17 +21,17 @@ namespace NutzCode.CloudFileSystem
         string Metadata { get; }
         string MetadataMime { get; }
 
-        Task<FileSystemResult> MoveAsync(IDirectory destination);
-        Task<FileSystemResult> CopyAsync(IDirectory destination);
-        Task<FileSystemResult> RenameAsync(string newname);
-        Task<FileSystemResult> TouchAsync();
-        Task<FileSystemResult> DeleteAsync(bool skipTrash);
+        Task<FileSystemResult> MoveAsync(IDirectory destination, CancellationToken token = default(CancellationToken));
+        Task<FileSystemResult> CopyAsync(IDirectory destination, CancellationToken token = default(CancellationToken));
+        Task<FileSystemResult> RenameAsync(string newname, CancellationToken token = default(CancellationToken));
+        Task<FileSystemResult> TouchAsync(CancellationToken token = default(CancellationToken));
+        Task<FileSystemResult> DeleteAsync(bool skipTrash, CancellationToken token = default(CancellationToken));
 
         List<IFile> GetAssets();
-        Task<IFile> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties);    
-        Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata);
-        Task<FileSystemResult<List<Property>>> ReadPropertiesAsync();
-        Task<FileSystemResult> SavePropertyAsync(Property property);       
+        Task<IFile> CreateAssetAsync(string name, Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token = default(CancellationToken));    
+        Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata, CancellationToken token = default(CancellationToken));
+        Task<FileSystemResult<List<Property>>> ReadPropertiesAsync(CancellationToken token = default(CancellationToken));
+        Task<FileSystemResult> SavePropertyAsync(Property property, CancellationToken token = default(CancellationToken));       
         
         bool TryGetMetadataValue<T>(string name, out T value);
     }

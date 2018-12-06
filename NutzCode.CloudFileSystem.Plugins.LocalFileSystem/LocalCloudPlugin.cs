@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using NutzCode.CloudFileSystem.OAuth2;
 using NutzCode.CloudFileSystem.Plugins.LocalFileSystem.Properties;
@@ -22,18 +23,18 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         public PluginAuthData PluginAuthData => new PluginAuthData();
 
 
-        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettings settings, string userauthorization)
+        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettings settings, string userauthorization, CancellationToken token = default(CancellationToken))
         {
-            return LocalFileSystem.Create(string.Empty);
+            return LocalFileSystem.CreateAsync(string.Empty,token);
         }
 
-        public Task<IFileSystem> InitAsync(string filesystemname, ProxyUserSettings settings, string userauthorization)
+        public Task<IFileSystem> InitAsync(string filesystemname, ProxyUserSettings settings, string userauthorization, CancellationToken token = default(CancellationToken))
         {
-            return LocalFileSystem.Create(string.Empty);
+            return LocalFileSystem.CreateAsync(string.Empty,token);
         }
-        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettingWithCode settings)
+        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettingWithCode settings, CancellationToken token = default(CancellationToken))
         {
-            return LocalFileSystem.Create(string.Empty);
+            return LocalFileSystem.CreateAsync(string.Empty,token);
         }
 
     }

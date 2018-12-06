@@ -27,44 +27,44 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         internal LocalFileSystem FS;
 
         public string MetadataMime { get; } = null;
-        public abstract Task<FileSystemResult> MoveAsync(IDirectory destination);
-        public abstract Task<FileSystemResult> CopyAsync(IDirectory destination);
-        public abstract Task<FileSystemResult> RenameAsync(string newname);
-        public abstract Task<FileSystemResult> TouchAsync();
-        public abstract Task<FileSystemResult> DeleteAsync(bool skipTrash);
+        public abstract Task<FileSystemResult> MoveAsync(IDirectory destination, CancellationToken token = default(CancellationToken));
+        public abstract Task<FileSystemResult> CopyAsync(IDirectory destination, CancellationToken token = default(CancellationToken));
+        public abstract Task<FileSystemResult> RenameAsync(string newname, CancellationToken token = default(CancellationToken));
+        public abstract Task<FileSystemResult> TouchAsync(CancellationToken token = default(CancellationToken));
+        public abstract Task<FileSystemResult> DeleteAsync(bool skipTrash, CancellationToken token = default(CancellationToken));
 
         public List<IFile> GetAssets()
         {
             throw new NotSupportedException();
         }
 
-        public Task<IFile> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<IFile> CreateAssetAsync(string name, Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token=default(CancellationToken))
         {
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult<ExpandoObject>> ReadMetadata()
+        public Task<FileSystemResult<ExpandoObject>> ReadMetadataAsync(CancellationToken token = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata)
+        public Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata, CancellationToken token = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult<List<Property>>> ReadPropertiesAsync()
+        public Task<FileSystemResult<List<Property>>> ReadPropertiesAsync(CancellationToken token = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
 
-        public Task<FileSystemResult> SavePropertyAsync(Property property)
+        public Task<FileSystemResult> SavePropertyAsync(Property property, CancellationToken token = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
 
 
-        public Task<FileSystemResult> SaveProperties(Dictionary<string, string> properties)
+        public Task<FileSystemResult> SavePropertiesAsync(Dictionary<string, string> properties, CancellationToken token = default(CancellationToken))
         {
             throw new NotSupportedException();
         }
@@ -78,7 +78,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             FS = fs;
         }
 
-        internal async Task<IFile> InternalCreateFile(DirectoryImplementation dir, string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        internal async Task<IFile> InternalCreateFileAsync(DirectoryImplementation dir, string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             if (properties == null)
                 properties = new Dictionary<string, object>();
@@ -91,8 +91,8 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             do
             {
                 int size = (int)Math.Min(left, block.Length);
-                int rsize = await readstream.ReadAsync(block, 0, size, token);
-                await s.WriteAsync(block, 0, rsize, token);
+                int rsize = await readstream.ReadAsync(block, 0, size, token).ConfigureAwait(false);
+                await s.WriteAsync(block, 0, rsize, token).ConfigureAwait(false);
                 left -= rsize;
                 FileProgress p = new FileProgress
                 {

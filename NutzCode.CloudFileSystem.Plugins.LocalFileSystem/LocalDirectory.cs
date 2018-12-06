@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using FileAttributes = System.IO.FileAttributes;
+using System.Threading;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {
@@ -54,13 +55,13 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         }
 
 
-        public override async Task<FileSystemResult> MoveAsync(IDirectory destination)
+        public override Task<FileSystemResult> MoveAsync(IDirectory destination, CancellationToken token = default(CancellationToken))
         {
             DirectoryImplementation to = destination as DirectoryImplementation;
             if (to == null)
-                return new FileSystemResult(Status.ArgumentError, "Destination should be a Local Directory");
+                return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Destination should be a Local Directory"));
             if (to is LocalRoot)
-                return new FileSystemResult(Status.ArgumentError, "Root cannot be destination");
+                return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Root cannot be destination"));
             string destname = Path.Combine(to.FullName, Name);
             string oldFullname = FullName;
             Directory.Move(FullName, destname);
@@ -69,18 +70,18 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             to.IntDirectories.Add(this);
             Parent = destination;
             FS.Refs[FullName] = this;
-            return await Task.FromResult(new FileSystemResult());
+            return Task.FromResult(new FileSystemResult());
 
         }
-        public override async Task<FileSystemResult> CopyAsync(IDirectory destination)
+        public override Task<FileSystemResult> CopyAsync(IDirectory destination, CancellationToken token = default(CancellationToken))
         {
-            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Directory copy is not supported"));
+            return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Directory copy is not supported"));
         }
 
-        public override async Task<FileSystemResult> RenameAsync(string newname)
+        public override Task<FileSystemResult> RenameAsync(string newname, CancellationToken token = default(CancellationToken))
         {
             if (string.Equals(Name, newname))
-                return new FileSystemResult(Status.ArgumentError, "Unable to rename, names are the same");
+                return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to rename, names are the same"));
             string oldFullname = FullName;
             string newfullname = Path.Combine(Parent.FullName, newname);
             Directory.Move(FullName, newfullname);
@@ -88,20 +89,20 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             DirectoryInfo dinfo = new DirectoryInfo(newfullname);
             _directory = dinfo;
             FS.Refs[FullName] = this;
-            return await Task.FromResult(new FileSystemResult());
+            return Task.FromResult(new FileSystemResult());
         }
 
-        public override async Task<FileSystemResult> TouchAsync()
+        public override Task<FileSystemResult> TouchAsync(CancellationToken token = default(CancellationToken))
         {
             _directory.LastWriteTime = DateTime.Now;
-            return await Task.FromResult(new FileSystemResult());
+            return Task.FromResult(new FileSystemResult());
         }
 
-        public override async Task<FileSystemResult> DeleteAsync(bool skipTrash)
+        public override Task<FileSystemResult> DeleteAsync(bool skipTrash, CancellationToken token = default(CancellationToken))
         {
             Directory.Delete(FullName,true);
             ((DirectoryImplementation)Parent).IntDirectories.Remove(this);
-            return await Task.FromResult(new FileSystemResult());
+            return Task.FromResult(new FileSystemResult());
         }
     }
 }

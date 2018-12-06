@@ -31,12 +31,12 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             
         }
 
-        public virtual async Task<IFile> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public virtual Task<IFile> CreateFileAsync(string name, Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token = default(CancellationToken))
         {
-            return await InternalCreateFile(this, name, readstream, token, progress, properties);
+            return InternalCreateFileAsync(this, name, readstream, token, progress, properties);
         }
 
-        public virtual async Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
+        public virtual Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties, CancellationToken token = default(CancellationToken))
         {
             try
             {
@@ -52,22 +52,22 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                 f.Parent = this;
                 FS.Refs[f.FullName] = f;
                 IntDirectories.Add(f);
-                return await Task.FromResult(f);
+                return Task.FromResult((IDirectory)f);
 
             }
             catch (Exception e)
             {
-                return new LocalDirectory(null, FS) { Status=Status.SystemError, Error="Error : " + e.Message};
+                return Task.FromResult<IDirectory>(new LocalDirectory(null, FS) { Status=Status.SystemError, Error="Error : " + e.Message});
             }
         }
 
         public virtual bool IsPopulated { get; internal set; }
         public bool IsRoot { get; internal set; } = false;
 
-        public virtual async Task<FileSystemResult> PopulateAsync()
+        public virtual Task<FileSystemResult> PopulateAsync(CancellationToken token = default(CancellationToken))
         {
             IsPopulated = true;
-            return await Task.FromResult(new FileSystemResult());
+            return Task.FromResult(new FileSystemResult());
         }
 
 
@@ -97,7 +97,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
        
 
 
-        public virtual async Task<FileSystemSizes> QuotaAsync()
+        public virtual Task<FileSystemSizes> QuotaAsync(CancellationToken token = default(CancellationToken))
         {
             FileSystemSizes Sizes = new FileSystemSizes();
             if (Extensions.IsLinux)
@@ -119,7 +119,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
                     Sizes.UsedSize = Sizes.TotalSize - Sizes.AvailableSize;
                 }
             }
-            return await Task.FromResult(Sizes);
+            return Task.FromResult(Sizes);
         }
 
 

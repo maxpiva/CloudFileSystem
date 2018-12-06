@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using NutzCode.CloudFileSystem.OAuth2;
 using NutzCode.CloudFileSystem.Plugins.OneDrive.Properties;
@@ -23,18 +24,18 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
         public PluginAuthData PluginAuthData => new PluginAuthData { LoginUri = OneDriveFileSystem.OneDriveOAuthLogin, RequiredScopes = OneDriveFileSystem.OneDriveScopes, ScopesCommaSeparated = false };
 
 
-        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettings settings, string userauthorization)
+        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettings settings, string userauthorization, CancellationToken token = default(CancellationToken))
         {
-            return OneDriveFileSystem.Create(filesystemname, settings, Name, userauthorization);
+            return OneDriveFileSystem.CreateAsync(filesystemname, settings, Name, userauthorization, token);
         }
 
-        public Task<IFileSystem> InitAsync(string filesystemname, ProxyUserSettings settings, string userauthorization)
+        public Task<IFileSystem> InitAsync(string filesystemname, ProxyUserSettings settings, string userauthorization, CancellationToken token = default(CancellationToken))
         {
-            return OneDriveFileSystem.Create(filesystemname, settings, Name, userauthorization);
+            return OneDriveFileSystem.CreateAsync(filesystemname, settings, Name, userauthorization, token);
         }
-        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettingWithCode settings)
+        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettingWithCode settings, CancellationToken token = default(CancellationToken))
         {
-            return OneDriveFileSystem.Create(filesystemname, settings, Name, null);
+            return OneDriveFileSystem.CreateAsync(filesystemname, settings, Name, null, token);
         }
 
     }

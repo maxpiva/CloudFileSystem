@@ -43,22 +43,22 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             return new FileInfo[0];
         }
 
-        public override Task<IFile> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public override Task<IFile> CreateFileAsync(string name, Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token=default(CancellationToken))
         {
             return Task.FromResult((IFile)new LocalFile(null, FS) { Status=Status.ArgumentError, Error = "Unable to write to root"});
         }
 
-        public override Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
+        public override Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties, CancellationToken token = default(CancellationToken))
         {
             return Task.FromResult((IDirectory)new LocalDirectory(null, FS) { Status=Status.ArgumentError, Error="Unable to create a directory in the root"});
         }
 
-        public override async Task<FileSystemResult> PopulateAsync()
+        public override Task<FileSystemResult> PopulateAsync(CancellationToken token = default(CancellationToken))
         {
             IntDirectories = DriveInfo.GetDrives().Select(a => new LocalDrive(a,FS) {Parent=this }).Cast<DirectoryImplementation>().ToList();
             IntDirectories.AddRange(UncPaths.Select(a=>new LocalDirectory(new DirectoryInfo(a),FS)));
             IsPopulated = true;
-            return await Task.FromResult(new FileSystemResult());
+            return Task.FromResult(new FileSystemResult());
         }
 
         internal void AddUncPath(string path)
@@ -66,29 +66,29 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
             UncPaths.Add(path);
             IntDirectories.Add(new LocalDirectory(new DirectoryInfo(path),FS));
         }
-        public override async Task<FileSystemResult> MoveAsync(IDirectory destination)
+        public override Task<FileSystemResult> MoveAsync(IDirectory destination, CancellationToken token = default(CancellationToken))
         {
-            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to move a root drive"));
+            return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to move a root drive"));
         }
 
-        public override async Task<FileSystemResult> CopyAsync(IDirectory destination)
+        public override Task<FileSystemResult> CopyAsync(IDirectory destination, CancellationToken token = default(CancellationToken))
         {
-            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to copy a root drive"));
+            return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to copy a root drive"));
         }
 
-        public override async Task<FileSystemResult> RenameAsync(string newname)
+        public override Task<FileSystemResult> RenameAsync(string newname, CancellationToken token = default(CancellationToken))
         {
-            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to rename the root"));
+            return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to rename the root"));
         }
 
-        public override async Task<FileSystemResult> TouchAsync()
+        public override Task<FileSystemResult> TouchAsync(CancellationToken token = default(CancellationToken))
         {
-            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to touch the root"));
+            return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to touch the root"));
         }
 
-        public override async Task<FileSystemResult> DeleteAsync(bool skipTrash)
+        public override Task<FileSystemResult> DeleteAsync(bool skipTrash, CancellationToken token = default(CancellationToken))
         {
-            return await Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to delete the root"));
+            return Task.FromResult(new FileSystemResult(Status.ArgumentError, "Unable to delete the root"));
         }
     }
 }

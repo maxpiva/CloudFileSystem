@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Dynamic;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NutzCode.CloudFileSystem.OAuth2;
@@ -33,11 +34,11 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
             return JsonConvert.SerializeObject(OAuth.Token);
         }
-        public Task<IObject> ResolveAsync(string path)
+        public Task<IObject> ResolveAsync(string path, CancellationToken token = default(CancellationToken))
         {
-            return Refs.ObjectFromPath(this, path);
+            return Refs.ObjectFromPathAsync(this, path, token);
         }
-        public static async Task<IFileSystem> Create(string fname, BaseUserSettings settings, string pluginanme, string userauthorization)
+        public static async Task<IFileSystem> CreateAsync(string fname, BaseUserSettings settings, string pluginanme, string userauthorization, CancellationToken token = default(CancellationToken))
         {
             GoogleDriveFileSystem am = new GoogleDriveFileSystem();
             am.FsName = fname;
@@ -50,19 +51,19 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             }
             if (!string.IsNullOrEmpty(userauthorization))
                 am.DeserializeAuth(userauthorization);
-            FileSystemResult r = await am.OAuth.InitAsync(settings);
+            FileSystemResult r = await am.OAuth.InitAsync(settings, token).ConfigureAwait(false);
             if (r.Status != Status.Ok)
             {
                 r.CopyErrorTo(am);
                 return am;
             }
-            r = await am.OAuth.MayRefreshToken();
+            r = await am.OAuth.MayRefreshTokenAsync(false,token).ConfigureAwait(false);
             if (r.Status!=Status.Ok)
             {
                 r.CopyErrorTo(am);
                 return am;
             }
-            r = await am.PopulateAsync();
+            r = await am.PopulateAsync(token).ConfigureAwait(false);
             if (r.Status != Status.Ok)
                 r.CopyErrorTo(am);
             return am;
@@ -83,9 +84,9 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return 0;
         }
 
-        public override async Task<FileSystemSizes> QuotaAsync()
+        public override async Task<FileSystemSizes> QuotaAsync(CancellationToken token = default(CancellationToken))
         {
-            FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStream<ExpandoObject>(GoogleQuota);
+            FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStreamAsync<ExpandoObject>(GoogleQuota,token).ConfigureAwait(false);
             if (cl.Status != Status.Ok)
                 return new FileSystemSizes { Status = cl.Status, Error = cl.Error};
             IDictionary<string, object> dic = cl.Result;

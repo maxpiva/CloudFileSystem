@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using NutzCode.CloudFileSystem.OAuth2;
 using NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive.Properties;
@@ -13,7 +14,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             get {
                 using (MemoryStream ms = new MemoryStream())
                 {
-                    this.GetType().Assembly.GetManifestResourceStream($"{this.GetType().Namespace}.Resources.Image48x48png").CopyTo(ms);
+                    this.GetType().Assembly.GetManifestResourceStream($"{GetType().Namespace}.Resources.Image48x48png").CopyTo(ms);
                     return ms.GetBuffer();                
                 }             
             }
@@ -23,18 +24,18 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         public PluginAuthData PluginAuthData => new PluginAuthData {LoginUri = AmazonFileSystem.AmazonOAuthLogin, RequiredScopes = AmazonFileSystem.AmazonScopes, ScopesCommaSeparated = false};
 
      
-        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettings settings, string userauthorization)
+        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettings settings, string userauthorization, CancellationToken token=default(CancellationToken))
         {
-            return AmazonFileSystem.Create(filesystemname, settings, Name, userauthorization);
+            return AmazonFileSystem.CreateAsync(filesystemname, settings, Name, userauthorization, token);
         }
 
-        public Task<IFileSystem> InitAsync(string filesystemname, ProxyUserSettings settings, string userauthorization)
+        public Task<IFileSystem> InitAsync(string filesystemname, ProxyUserSettings settings, string userauthorization, CancellationToken token = default(CancellationToken))
         {
-            return AmazonFileSystem.Create(filesystemname, settings, Name, userauthorization);
+            return AmazonFileSystem.CreateAsync(filesystemname, settings, Name, userauthorization, token);
         }
-        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettingWithCode settings)
+        public Task<IFileSystem> InitAsync(string filesystemname, LocalUserSettingWithCode settings, CancellationToken token = default(CancellationToken))
         {
-            return AmazonFileSystem.Create(filesystemname, settings, Name, null);
+            return AmazonFileSystem.CreateAsync(filesystemname, settings, Name, null, token);
         }
 
 

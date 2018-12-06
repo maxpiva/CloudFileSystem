@@ -23,7 +23,7 @@ namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 
         }
 
-        public Task<FileSystemResult> OverwriteFileAsync(Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<FileSystemResult> OverwriteFileAsync(Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token = default(CancellationToken))
         {
             throw new NotImplementedException();
         }

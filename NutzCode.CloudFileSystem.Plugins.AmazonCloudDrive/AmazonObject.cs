@@ -35,7 +35,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         }
 
         // ReSharper disable once CyclomaticComplexity
-        internal async Task<IFile> InternalCreateFile(string name, string type, bool overwrite, AmazonObject parent, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        internal async Task<IFile> InternalCreateFileAsync(string name, string type, bool overwrite, AmazonObject parent, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
         {
             if (readstream.Length == 0)
                 throw new ArgumentException("input stream must have length");
@@ -106,15 +106,15 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             };
             handler.AllowAutoRedirect = true;
             handler.AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip;
-            await FS.CheckExpirations();
+            await FS.CheckExpirationsAsync(token).ConfigureAwait(false);
             HttpClient cl = new HttpClient(progresshandler);
             HttpResponseMessage response = null;
             try
             {
-                response = await cl.SendAsync(msg, token);
+                response = await cl.SendAsync(msg, token).ConfigureAwait(false);
                 if (response.StatusCode == HttpStatusCode.Created)
                 {
-                    string dd = await response.Content.ReadAsStringAsync();
+                    string dd = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     string parentpath = string.Empty;
                     AmazonDirectory dir=parent as AmazonDirectory;
                     if (dir==null || !dir.IsRoot)
@@ -180,7 +180,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
         public IFileSystem FileSystem => FS;
 
-        public async Task<FileSystemResult> MoveAsync(IDirectory destination)
+        public async Task<FileSystemResult> MoveAsync(IDirectory destination, CancellationToken token=default(CancellationToken))
         {
             if (Parent==null)
                 return new FileSystemResult(Status.ArgumentError, "Unable to move root directory");
@@ -194,7 +194,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             j.fromParent = ((AmazonDirectory)Parent).Id;
 
             string url = AmazonMove.FormatRest(FS.OAuth.EndPoint.MetadataUrl, dest.Id);
-            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j)), "application/json");
+            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStreamAsync<string>(url, token, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j)), "application/json").ConfigureAwait(false);
             //TODO Some kind of locking
             if (ex.Status==Status.Ok)
             {
@@ -206,7 +206,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
-        public async Task<FileSystemResult> CopyAsync(IDirectory destination)
+        public async Task<FileSystemResult> CopyAsync(IDirectory destination, CancellationToken token = default(CancellationToken))
         {
             if (Parent == null)
                 return new FileSystemResult(Status.ArgumentError, "Unable to Copy root directory");
@@ -217,7 +217,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                 return new FileSystemResult(Status.ArgumentError, "Source Directory and Destination Directory should be different");
             string url = AmazonCopy.FormatRest(FS.OAuth.EndPoint.MetadataUrl, dest.Id, Id);
 
-            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, null, null,HttpMethod.Put);
+            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStreamAsync<string>(url, token, null, null,HttpMethod.Put).ConfigureAwait(false);
             if (ex.Status == Status.Ok)
             {
                 if (this is AmazonFile)
@@ -241,13 +241,13 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
-        public async Task<FileSystemResult> RenameAsync(string newname)
+        public async Task<FileSystemResult> RenameAsync(string newname, CancellationToken token = default(CancellationToken))
         {
             string oldFullname = FullName;
             string url = AmazonPatch.FormatRest(FS.OAuth.EndPoint.ContentUrl, Id);
             Json.ChangeName name=new Json.ChangeName();
             name.name = newname;
-            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(name)), "application/json", new HttpMethod("PATCH"));
+            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStreamAsync<string>(url, token, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(name)), "application/json", new HttpMethod("PATCH")).ConfigureAwait(false);
             if (ex.Status == Status.Ok)
             {
                 SetData(ex.Result);               
@@ -261,7 +261,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
-        public Task<FileSystemResult> TouchAsync()
+        public Task<FileSystemResult> TouchAsync(CancellationToken token = default(CancellationToken))
         {
             //Touch is not supported yet by Amazon
             throw new NotSupportedException();
@@ -278,13 +278,13 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<IDirectory>(ex.Error);*/
         }
 
-        public async Task<FileSystemResult> DeleteAsync(bool skipTrash)
+        public async Task<FileSystemResult> DeleteAsync(bool skipTrash, CancellationToken token = default(CancellationToken))
         {
             if (Parent == null)
                 return new FileSystemResult(Status.ArgumentError, "Unable to delete root directory");
             string url = AmazonTrash.FormatRest(FS.OAuth.EndPoint.MetadataUrl,Id);
 
-            FileSystemResult<ExpandoObject> ex = await FS.OAuth.CreateMetadataStream<ExpandoObject>(url, null, null, HttpMethod.Put);
+            FileSystemResult<ExpandoObject> ex = await FS.OAuth.CreateMetadataStreamAsync<ExpandoObject>(url, token, null, null, HttpMethod.Put).ConfigureAwait(false);
             if (ex.Status == Status.Ok)
             {
                 if (this is AmazonFile)
@@ -301,7 +301,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             return new FileSystemResult<IDirectory>(ex.Status, ex.Error);
         }
 
-        public async Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata)
+        public async Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata, CancellationToken token = default(CancellationToken))
         {
             //Only Name, Description and Labels supported
             Json.MetaPatch patch=new Json.MetaPatch();
@@ -314,7 +314,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             if (InternalTryGetProperty(metadata, "labels", out labels))
                 patch.labels = labels;
             string url = AmazonPatch.FormatRest(FS.OAuth.EndPoint.MetadataUrl, Id);
-            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(patch)), "application/json", new HttpMethod("PATCH"));
+            FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStreamAsync<string>(url, token, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(patch)), "application/json", new HttpMethod("PATCH")).ConfigureAwait(false);
             if (ex.Status == Status.Ok)
             {
                 SetData(ex.Result);
@@ -355,16 +355,16 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         }
 
 
-        public async Task<FileSystemResult<List<Property>>> ReadPropertiesAsync()
+        public Task<FileSystemResult<List<Property>>> ReadPropertiesAsync(CancellationToken token = default(CancellationToken))
         {
-            return await Task.FromResult(new FileSystemResult<List<Property>>(InternalReadProperties()));
+            return Task.FromResult(new FileSystemResult<List<Property>>(InternalReadProperties()));
         }
 
 
 
 
 
-        public async Task<FileSystemResult> SavePropertyAsync(Property property)
+        public async Task<FileSystemResult> SavePropertyAsync(Property property, CancellationToken token = default(CancellationToken))
         {
             //Properties can only be read/write/change by the Application Friendly Name Owner
             List<Property> org=InternalReadProperties();
@@ -374,14 +374,14 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             if (p != null)
             {
                 string url2 = AmazonProperty.FormatRest(FS.OAuth.EndPoint.MetadataUrl, Id, FS.AppFriendlyName, property.Key);
-                FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStream<string>(url2, null, null, HttpMethod.Delete);
+                FileSystemResult<string> ex = await FS.OAuth.CreateMetadataStreamAsync<string>(url2, token, null, null, HttpMethod.Delete).ConfigureAwait(false);
                 if (ex.Status != Status.Ok)
                     errors.Add(ex.Error);
             }
             string url = AmazonProperty.FormatRest(FS.OAuth.EndPoint.MetadataUrl, Id, FS.AppFriendlyName, property.Key);
             Json.AddProperty addp = new Json.AddProperty();
             addp.value = property.Value;
-            FileSystemResult<string> ex2 = await FS.OAuth.CreateMetadataStream<string>(url, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(addp)), "application/json", HttpMethod.Put);
+            FileSystemResult<string> ex2 = await FS.OAuth.CreateMetadataStreamAsync<string>(url, token, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(addp)), "application/json", HttpMethod.Put).ConfigureAwait(false);
             if (ex2.Status != Status.Ok)
                 errors.Add(ex2.Error);
             if (errors.Count > 0)
@@ -404,10 +404,10 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         }
 
 
-        public async Task<IFile> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<IFile> CreateAssetAsync(string name, Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token = default(CancellationToken))
         {
 #if DEBUG || EXPERIMENTAL
-            IFile f = await InternalCreateFile(Name, "ASSET", false, this, readstream, token, progress, properties);
+            IFile f = await InternalCreateFileAsync(Name, "ASSET", false, this, readstream, token, progress, properties).ConfigureAwait(false);
             if (f.Status==Status.Ok)
                 Assets.Add(f);
             return f;

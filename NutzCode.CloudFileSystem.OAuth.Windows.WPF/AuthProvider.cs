@@ -1,4 +1,5 @@
 ﻿
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using NutzCode.CloudFileSystem.OAuth.Windows.WPF;
@@ -11,7 +12,7 @@ namespace NutzCode.CloudFileSystem.OAuth.Windows.WPF
     {
         public string Name => "WPF";
 
-        public async Task<AuthResult> Login(AuthRequest request)
+        public async Task<AuthResult> LoginAsync(AuthRequest request, CancellationToken token=default(CancellationToken))
         {
             AuthResult r = new AuthResult();
             await Application.Current.Dispatcher.InvokeAsync(() =>

@@ -33,12 +33,12 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
 
 
 
-        public Task<IFile> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<IFile> CreateFileAsync(string name, Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token=default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public async Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
+        public async Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties, CancellationToken token=default(CancellationToken))
         {
 
             if (properties == null)
@@ -55,7 +55,7 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
                 f.ModifiedDate = (DateTime)properties.First(a => a.Key.Equals("ModifiedDate", StringComparison.InvariantCultureIgnoreCase)).Value;
             if (properties.Any(a => a.Key.Equals("CreatedDate", StringComparison.InvariantCultureIgnoreCase)))
                 f.CreatedDate = (DateTime)properties.First(a => a.Key.Equals("CreatedDate", StringComparison.InvariantCultureIgnoreCase)).Value;
-            FileSystemResult<ExpandoObject> ex = await FS.OAuth.CreateMetadataStream<ExpandoObject>(GoogleCreateDir, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(f)), "application/json");
+            FileSystemResult<ExpandoObject> ex = await FS.OAuth.CreateMetadataStreamAsync<ExpandoObject>(GoogleCreateDir, token, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(f)), "application/json").ConfigureAwait(false);
             if (ex.Status==Status.Ok)
             {
                 GoogleDriveDirectory dir = new GoogleDriveDirectory(FullName, FS) { Parent = this };
@@ -67,13 +67,13 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new GoogleDriveDirectory(FullName, FS) { Parent = this, Status = ex.Status, Error=ex.Error };
         }
 
-        public async Task<FileSystemResult> PopulateAsync()
+        public async Task<FileSystemResult> PopulateAsync(CancellationToken token = default(CancellationToken))
         {
-            FileSystemResult r = await FS.OAuth.MayRefreshToken();
+            FileSystemResult r = await FS.OAuth.MayRefreshTokenAsync(false, token).ConfigureAwait(false);
             if (r.Status!=Status.Ok)
                 return r;
             string url = GoogleList.FormatRest(Id);
-            FileSystemResult<dynamic> fr = await List(url);
+            FileSystemResult<dynamic> fr = await ListAsync(url,token).ConfigureAwait(false);
             if (fr.Status != Status.Ok)
                 return new FileSystemResult(fr.Status, fr.Error);
             IntFiles = new List<GoogleDriveFile>();
@@ -103,9 +103,9 @@ namespace NutzCode.CloudFileSystem.Plugins.GoogleDrive
             return new FileSystemResult();
         }
 
-        public virtual Task<FileSystemSizes> QuotaAsync()
+        public virtual Task<FileSystemSizes> QuotaAsync(CancellationToken token = default(CancellationToken))
         {
-            return FS.QuotaAsync();
+            return FS.QuotaAsync(token);
         }
 
 

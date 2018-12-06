@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace NutzCode.CloudFileSystem.OAuth2
 {
@@ -6,7 +7,7 @@ namespace NutzCode.CloudFileSystem.OAuth2
     public interface IOAuthProvider
     {
         string Name { get; }
-        Task<AuthResult> Login(AuthRequest request);
+        Task<AuthResult> LoginAsync(AuthRequest request, CancellationToken token=default(CancellationToken));
     }
 
 }

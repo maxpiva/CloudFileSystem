@@ -34,14 +34,14 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
         public bool IsRoot { get; internal set; } = false;
 
 
-        internal async Task<FileSystemResult<dynamic>> List(string url)
+        internal async Task<FileSystemResult<dynamic>> ListAsync(string url, CancellationToken token)
         {
             string baseurl = url;
             int count ;
             List<dynamic> accum = new List<dynamic>();
             do
             {
-                FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStream<ExpandoObject>(url);
+                FileSystemResult<ExpandoObject> cl = await FS.OAuth.CreateMetadataStreamAsync<ExpandoObject>(url,token).ConfigureAwait(false);
                 if (cl.Status!=Status.Ok)
                     return new FileSystemResult<dynamic>(cl.Status, cl.Error);
                 dynamic obj = cl.Result;
@@ -49,7 +49,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
                 if (count > 0)
                 {
                     accum.AddRange(obj.data);
-                    if (!((IDictionary<String, object>)obj).ContainsKey("nextToken"))
+                    if (!((IDictionary<string, object>)obj).ContainsKey("nextToken"))
                         count = 0;
                     else
                         url = baseurl + "&startToken=" + obj.nextToken;
@@ -62,15 +62,15 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 
        
         private readonly AsyncLock _populateLock=new AsyncLock();
-        public async Task<FileSystemResult> PopulateAsync()
+        public async Task<FileSystemResult> PopulateAsync(CancellationToken token=default(CancellationToken))
         {
-            using (await _populateLock.LockAsync())
+            using (await _populateLock.LockAsync(token).ConfigureAwait(false))
             {
-                FileSystemResult r = await FS.CheckExpirations();
+                FileSystemResult r = await FS.CheckExpirationsAsync(token).ConfigureAwait(false);
                 if (r.Status!=Status.Ok)
                     return r;
                 string url = AmazonList.FormatRest(FS.OAuth.EndPoint.MetadataUrl, Id);
-                FileSystemResult<dynamic> fr = await List(url);
+                FileSystemResult<dynamic> fr = await ListAsync(url, token).ConfigureAwait(false);
                 if (r.Status != Status.Ok)
                     return r;
                 IntFiles = new List<AmazonFile>();
@@ -101,9 +101,9 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             }           
         }
 
-        public virtual Task<FileSystemSizes> QuotaAsync()
+        public virtual Task<FileSystemSizes> QuotaAsync(CancellationToken token=default(CancellationToken))
         {
-            return FS.QuotaAsync();
+            return FS.QuotaAsync(token);
         }
 
 
@@ -112,10 +112,10 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             IsPopulated = false;
         }
 
-        public async Task<IFile> CreateFileAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public async Task<IFile> CreateFileAsync(string name, Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token=default(CancellationToken))
         {
 #if DEBUG || EXPERIMENTAL
-            IFile f=await InternalCreateFile(name,"FILE",false, this,readstream,token,progress, properties);
+            IFile f=await InternalCreateFileAsync(name,"FILE",false, this,readstream,token,progress, properties).ConfigureAwait(false);
             if (f.Status!=Status.Ok)
                 IntFiles.Add((AmazonFile)f);
             return f;
@@ -124,7 +124,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
 #endif
         }
 
-        public async Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties)
+        public async Task<IDirectory> CreateDirectoryAsync(string name, Dictionary<string, object> properties, CancellationToken token=default(CancellationToken))
         {
             if (properties == null)
                 properties = new Dictionary<string, object>();
@@ -142,7 +142,7 @@ namespace NutzCode.CloudFileSystem.Plugins.AmazonCloudDrive
             j.kind = "FOLDER";
             j.parents = new List<string> { Id };
             string url = AmazonCreateDirectory.FormatRest(FS.OAuth.EndPoint.MetadataUrl,Guid.NewGuid().ToString().Replace("-",string.Empty));
-            FileSystemResult<string> ex=await FS.OAuth.CreateMetadataStream<string>(url,Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j,Formatting.None,new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })), "application/json");
+            FileSystemResult<string> ex=await FS.OAuth.CreateMetadataStreamAsync<string>(url, token, Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(j,Formatting.None,new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })), "application/json").ConfigureAwait(false);
             if (ex.Status==Status.Ok)
             {
                 AmazonDirectory dir = new AmazonDirectory(FullName, FS) { Parent = this };

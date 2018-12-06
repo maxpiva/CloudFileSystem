@@ -22,27 +22,27 @@ namespace NutzCode.CloudFileSystem
         public ExpandoObject MetadataExpanded { get; }
         public string Metadata { get; }
         public string MetadataMime { get; }
-        public Task<FileSystemResult> MoveAsync(IDirectory destination)
+        public Task<FileSystemResult> MoveAsync(IDirectory destination, CancellationToken token=default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public Task<FileSystemResult> CopyAsync(IDirectory destination)
+        public Task<FileSystemResult> CopyAsync(IDirectory destination, CancellationToken token = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public Task<FileSystemResult> RenameAsync(string newname)
+        public Task<FileSystemResult> RenameAsync(string newname, CancellationToken token = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public Task<FileSystemResult> TouchAsync()
+        public Task<FileSystemResult> TouchAsync(CancellationToken token=default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public Task<FileSystemResult> DeleteAsync(bool skipTrash)
+        public Task<FileSystemResult> DeleteAsync(bool skipTrash, CancellationToken token = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
@@ -52,22 +52,22 @@ namespace NutzCode.CloudFileSystem
             throw new NotImplementedException();
         }
 
-        public Task<IFile> CreateAssetAsync(string name, Stream readstream, CancellationToken token, IProgress<FileProgress> progress, Dictionary<string, object> properties)
+        public Task<IFile> CreateAssetAsync(string name, Stream readstream, IProgress<FileProgress> progress, Dictionary<string, object> properties, CancellationToken token = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata)
+        public Task<FileSystemResult> WriteMetadataAsync(ExpandoObject metadata, CancellationToken token = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public Task<FileSystemResult<List<Property>>> ReadPropertiesAsync()
+        public Task<FileSystemResult<List<Property>>> ReadPropertiesAsync(CancellationToken token = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public Task<FileSystemResult> SavePropertyAsync(Property property)
+        public Task<FileSystemResult> SavePropertyAsync(Property property, CancellationToken token = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
