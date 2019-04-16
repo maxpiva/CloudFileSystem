@@ -1,11 +1,7 @@
 ﻿﻿using System;
+ using System.IO;
  using System.Linq;
 using System.Threading.Tasks;
- using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
- using FileInfo = Pri.LongPath.FileInfo;
- using FileAttributes = System.IO.FileAttributes;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
 {

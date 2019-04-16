@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Pri.LongPath;
-using Path = Pri.LongPath.Path;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using FileInfo = Pri.LongPath.FileInfo;
 using Stream = System.IO.Stream;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem

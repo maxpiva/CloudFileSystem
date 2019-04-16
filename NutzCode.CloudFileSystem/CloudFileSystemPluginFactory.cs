@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.ComponentModel.Composition.Hosting;
+using System.IO;
 using System.Reflection;
 using NutzCode.Libraries.Web.StreamProvider;
 
@@ -30,7 +31,7 @@ namespace NutzCode.CloudFileSystem
             Assembly assembly = Assembly.GetEntryAssembly();
             string codebase = assembly.CodeBase;
             UriBuilder uri = new UriBuilder(codebase);
-            string dirname = Pri.LongPath.Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path).Replace("/",$"{System.IO.Path.DirectorySeparatorChar}"));
+            string dirname = Path.GetDirectoryName(Uri.UnescapeDataString(uri.Path).Replace("/",$"{System.IO.Path.DirectorySeparatorChar}"));
             if (dirname != null)
             {
 

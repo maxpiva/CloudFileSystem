@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Stream = System.IO.Stream;
 using MemoryStream = System.IO.MemoryStream;
 
@@ -6,12 +7,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-using Path = Pri.LongPath.Path;
-using Directory = Pri.LongPath.Directory;
-using DirectoryInfo = Pri.LongPath.DirectoryInfo;
-using File = Pri.LongPath.File;
-using FileSystemInfo = Pri.LongPath.FileSystemInfo;
-using FileInfo = Pri.LongPath.FileInfo;
 
 namespace NutzCode.CloudFileSystem
 {

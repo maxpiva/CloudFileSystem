@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NutzCode.Libraries.Web;
-using Path = Pri.LongPath.Path;
-using Stream = System.IO.Stream;
 
 namespace NutzCode.CloudFileSystem.Plugins.OneDrive
 {
