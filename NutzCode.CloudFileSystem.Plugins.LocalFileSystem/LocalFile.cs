@@ -1,7 +1,8 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Threading;
+ using System.Linq;
+ using System.Threading;
 using System.Threading.Tasks;
 
 namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
@@ -73,7 +74,7 @@ namespace NutzCode.CloudFileSystem.Plugins.LocalFileSystem
         {
             get
             {
-                List<string> ls = MimeTypeMap.List.MimeTypeMap.GetMimeType(Extension);
+                List<string> ls = MimeTypeMap.List.MimeTypeMap.GetMimeType(Extension).ToList();
                 if (ls == null || ls.Count == 0)
                     return string.Empty;
                 return ls[0];
